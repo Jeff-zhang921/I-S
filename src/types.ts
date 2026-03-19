@@ -22,6 +22,8 @@ export type ScreenId =
   | "ownerCandidateDetail"
   | "ownerSavedList"
   | "ownerSendIntro"
+  | "ownerGroupChat"
+  | "ownerChatThread"
   | "ownerProfile"
   | "profile"
   | "groupChat"

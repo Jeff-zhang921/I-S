@@ -22,6 +22,8 @@ import OwnerMatchFeedPage from "./pages/host-room/OwnerMatchFeedPage";
 import OwnerCandidateDetailPage from "./pages/host-room/OwnerCandidateDetailPage";
 import OwnerSavedListPage from "./pages/host-room/OwnerSavedListPage";
 import OwnerSendIntroPage from "./pages/host-room/OwnerSendIntroPage";
+import OwnerGroupChatPage from "./pages/host-room/OwnerGroupChatPage";
+import OwnerChatThreadPage from "./pages/host-room/OwnerChatThreadPage";
 import {
   DEMO_VERIFICATION_CODE,
   categoryMeta,
@@ -35,6 +37,7 @@ import {
 import { defaultFilters, roomMatches } from "./data/findRoom";
 import { initialOwnerListing, ownerCandidateMatches } from "./data/ownerRoom";
 import { buildFakeGroupReply, groupChatThreads } from "./data/groupChat";
+import { buildFakeOwnerGroupReply, ownerGroupChatThreads } from "./data/ownerGroupChat";
 import { getFilteredMatches, scoreRoomMatch, toggleAmenity } from "./lib/findRoom";
 import { rankOwnerCandidates } from "./lib/ownerRoom";
 import {
@@ -65,9 +68,9 @@ import "./styles.css";
 type DetailReturnScreen = "browseListings" | "suggestions" | "matchFeed" | "savedList" | "chatThread";
 type IntroBackScreen = "matchFeed" | "matchDetail" | "savedList";
 type RenterNavScreen = "browseListings" | "suggestions" | "savedList" | "groupChat" | "profile";
-type OwnerDetailReturnScreen = "ownerSuggestions" | "ownerMatchFeed" | "ownerSavedList";
+type OwnerDetailReturnScreen = "ownerSuggestions" | "ownerMatchFeed" | "ownerSavedList" | "ownerGroupChat";
 type OwnerIntroBackScreen = "ownerMatchFeed" | "ownerCandidateDetail" | "ownerSavedList";
-type OwnerNavScreen = "ownerListing" | "ownerSuggestions" | "ownerSavedList" | "ownerProfile";
+type OwnerNavScreen = "ownerListing" | "ownerSuggestions" | "ownerSavedList" | "ownerGroupChat" | "ownerProfile";
 type JourneyMode = "renter" | "owner";
 
 const emptyStatus: StatusState = { kind: "idle", message: "" };
@@ -82,6 +85,7 @@ const ownerNavItems = [
   { id: "ownerListing", label: "Listing", badge: "RM" },
   { id: "ownerSuggestions", label: "Matches", badge: "MT" },
   { id: "ownerSavedList", label: "Saved", badge: "SV" },
+  { id: "ownerGroupChat", label: "Chats", badge: "GC" },
   { id: "ownerProfile", label: "Profile", badge: "ME" }
 ] as const;
 
@@ -137,6 +141,8 @@ function App() {
   const [ownerLikedIds, setOwnerLikedIds] = useState<string[]>([]);
   const [ownerContactedIds, setOwnerContactedIds] = useState<string[]>([]);
   const [ownerIntroDrafts, setOwnerIntroDrafts] = useState<Record<string, string>>({});
+  const [ownerChatDrafts, setOwnerChatDrafts] = useState<Record<string, string>>({});
+  const [ownerChatMessagesByCandidate, setOwnerChatMessagesByCandidate] = useState<Record<string, ChatMessage[]>>({});
 
   useEffect(() => {
     const root = document.documentElement;
@@ -277,8 +283,13 @@ function App() {
   const chatMatchPool = allScoredMatches.filter(
     (match) => chatEligibleIds.includes(match.id)
   );
+  const ownerChatPool = scoredOwnerCandidates.filter((candidate) => ownerContactedIds.includes(candidate.id));
   const activeChatMatch =
     selectedMatch && chatEligibleIds.includes(selectedMatch.id) ? selectedMatch : chatMatchPool[0] ?? null;
+  const activeOwnerChatCandidate =
+    selectedOwnerCandidate && ownerContactedIds.includes(selectedOwnerCandidate.id)
+      ? selectedOwnerCandidate
+      : ownerChatPool[0] ?? null;
   const currentIntroDraft = selectedMatch
     ? introDrafts[selectedMatch.id] ?? buildIntroDraft(account.fullName, selectedMatch)
     : "";
@@ -286,7 +297,9 @@ function App() {
     ? ownerIntroDrafts[selectedOwnerCandidate.id] ?? buildOwnerIntroDraft(account.fullName, selectedOwnerCandidate, ownerListing)
     : "";
   const currentChatDraft = activeChatMatch ? chatDrafts[activeChatMatch.id] ?? "" : "";
+  const currentOwnerChatDraft = activeOwnerChatCandidate ? ownerChatDrafts[activeOwnerChatCandidate.id] ?? "" : "";
   const activeChatThread = activeChatMatch ? getChatThread(activeChatMatch.id) : null;
+  const activeOwnerChatThread = activeOwnerChatCandidate ? getOwnerChatThread(activeOwnerChatCandidate.id) : null;
   const showRenterNav = [
     "browseListings",
     "filters",
@@ -305,6 +318,8 @@ function App() {
     "ownerCandidateDetail",
     "ownerSavedList",
     "ownerSendIntro",
+    "ownerGroupChat",
+    "ownerChatThread",
     "ownerProfile"
   ].includes(screen);
   const showPrimaryNav = showRenterNav || showOwnerNav;
@@ -344,10 +359,19 @@ function App() {
         return "ownerListing";
       case "ownerSavedList":
         return "ownerSavedList";
+      case "ownerGroupChat":
+      case "ownerChatThread":
+        return "ownerGroupChat";
       case "ownerProfile":
         return "ownerProfile";
       case "ownerCandidateDetail":
-        return ownerDetailReturnScreen === "ownerSavedList" ? "ownerSavedList" : "ownerSuggestions";
+        if (ownerDetailReturnScreen === "ownerSavedList") {
+          return "ownerSavedList";
+        }
+        if (ownerDetailReturnScreen === "ownerGroupChat") {
+          return "ownerGroupChat";
+        }
+        return "ownerSuggestions";
       case "ownerSendIntro":
         return ownerIntroBackScreen === "ownerSavedList" ? "ownerSavedList" : "ownerSuggestions";
       default:
@@ -387,6 +411,8 @@ function App() {
     setOwnerLikedIds([]);
     setOwnerContactedIds([]);
     setOwnerIntroDrafts({});
+    setOwnerChatDrafts({});
+    setOwnerChatMessagesByCandidate({});
   }
 
   function getChatThread(matchId: string) {
@@ -412,6 +438,35 @@ function App() {
         ...(groupChatThreads[matchId]?.participants ?? [])
       ],
       messages: [...(groupChatThreads[matchId]?.messages ?? []), ...(chatMessagesByMatch[matchId] ?? [])]
+    };
+  }
+
+  function getOwnerChatThread(candidateId: string) {
+    const candidate = scoredOwnerCandidates.find((item) => item.id === candidateId);
+    if (!candidate) {
+      return null;
+    }
+
+    return {
+      ...(ownerGroupChatThreads[candidateId] ?? {
+        matchId: candidateId,
+        title: `${candidate.name} chat`,
+        participants: [],
+        messages: []
+      }),
+      participants: [
+        {
+          id: "me",
+          name: account.fullName || "You",
+          role: "me" as const,
+          label: "You"
+        },
+        ...(ownerGroupChatThreads[candidateId]?.participants ?? [])
+      ],
+      messages: [
+        ...(ownerGroupChatThreads[candidateId]?.messages ?? []),
+        ...(ownerChatMessagesByCandidate[candidateId] ?? [])
+      ]
     };
   }
 
@@ -552,10 +607,33 @@ function App() {
     clearStatus();
   }
 
+  function openOwnerGroupChat(candidateId: string) {
+    const candidate = scoredOwnerCandidates.find((item) => item.id === candidateId);
+    if (!candidate) {
+      return;
+    }
+
+    if (!ownerContactedIds.includes(candidate.id)) {
+      setStatus({ kind: "error", message: "Send an intro first to unlock the owner chat." });
+      return;
+    }
+
+    setSelectedOwnerCandidateId(candidate.id);
+    setScreen("ownerChatThread");
+    clearStatus();
+  }
+
   function appendChatMessage(matchId: string, message: ChatMessage) {
     setChatMessagesByMatch((current) => ({
       ...current,
       [matchId]: [...(current[matchId] ?? []), message]
+    }));
+  }
+
+  function appendOwnerChatMessage(candidateId: string, message: ChatMessage) {
+    setOwnerChatMessagesByCandidate((current) => ({
+      ...current,
+      [candidateId]: [...(current[candidateId] ?? []), message]
     }));
   }
 
@@ -673,6 +751,9 @@ function App() {
         break;
       case "ownerSavedList":
         setScreen("ownerSavedList");
+        break;
+      case "ownerGroupChat":
+        setScreen("ownerGroupChat");
         break;
       case "ownerProfile":
         setScreen("ownerProfile");
@@ -882,10 +963,33 @@ function App() {
     addLikedOwnerCandidate(selectedOwnerCandidate.id);
     setOwnerContactedIds((current) => (current.includes(selectedOwnerCandidate.id) ? current : [...current, selectedOwnerCandidate.id]));
     setOwnerIntroDrafts((current) => ({ ...current, [selectedOwnerCandidate.id]: draft }));
-    setScreen("ownerSavedList");
+    appendOwnerChatMessage(selectedOwnerCandidate.id, {
+      id: `${selectedOwnerCandidate.id}-owner-intro-${Date.now()}`,
+      senderId: "me",
+      body: draft,
+      sentAt: "Just now"
+    });
+    appendOwnerChatMessage(
+      selectedOwnerCandidate.id,
+      buildFakeOwnerGroupReply(
+        selectedOwnerCandidate,
+        (ownerGroupChatThreads[selectedOwnerCandidate.id]?.messages.length ?? 0) +
+          (ownerChatMessagesByCandidate[selectedOwnerCandidate.id]?.length ?? 0)
+      )
+    );
+    setOwnerChatDrafts((current) => ({ ...current, [selectedOwnerCandidate.id]: "" }));
+
+    if (
+      ownerIntroBackScreen === "ownerMatchFeed" ||
+      (ownerIntroBackScreen === "ownerCandidateDetail" && ownerDetailReturnScreen === "ownerMatchFeed")
+    ) {
+      setOwnerFeedIndex((current) => current + 1);
+    }
+
+    setScreen("ownerChatThread");
     setStatus({
       kind: "success",
-      message: `Intro sent to ${selectedOwnerCandidate.name}. Next step in the FigJam flow would be mutual like and chat.`
+      message: `Intro sent to ${selectedOwnerCandidate.name}. The owner chat is now open.`
     });
   }
 
@@ -917,6 +1021,39 @@ function App() {
     );
     setChatDrafts((current) => ({ ...current, [activeChatMatch.id]: "" }));
     setStatus({ kind: "success", message: "Message sent to the owner group chat." });
+  }
+
+  function handleSendOwnerChatMessage() {
+    if (!activeOwnerChatCandidate) {
+      return;
+    }
+
+    const draft = (ownerChatDrafts[activeOwnerChatCandidate.id] ?? "").trim();
+    if (!draft) {
+      setStatus({ kind: "error", message: "Type a message before sending it to the renter chat." });
+      return;
+    }
+
+    addSavedOwnerCandidate(activeOwnerChatCandidate.id);
+    setOwnerContactedIds((current) =>
+      current.includes(activeOwnerChatCandidate.id) ? current : [...current, activeOwnerChatCandidate.id]
+    );
+    appendOwnerChatMessage(activeOwnerChatCandidate.id, {
+      id: `${activeOwnerChatCandidate.id}-owner-user-${Date.now()}`,
+      senderId: "me",
+      body: draft,
+      sentAt: "Just now"
+    });
+    appendOwnerChatMessage(
+      activeOwnerChatCandidate.id,
+      buildFakeOwnerGroupReply(
+        activeOwnerChatCandidate,
+        (ownerGroupChatThreads[activeOwnerChatCandidate.id]?.messages.length ?? 0) +
+          (ownerChatMessagesByCandidate[activeOwnerChatCandidate.id]?.length ?? 0)
+      )
+    );
+    setOwnerChatDrafts((current) => ({ ...current, [activeOwnerChatCandidate.id]: "" }));
+    setStatus({ kind: "success", message: "Message sent to the renter chat." });
   }
 
   const renderedScreen = (() => {
@@ -1043,6 +1180,8 @@ function App() {
             onBack={() => setScreen(ownerDetailReturnScreen)}
             onSave={() => handleSaveOwnerCandidate(selectedOwnerCandidate?.id ?? null)}
             onLike={() => selectedOwnerCandidate && addLikedOwnerCandidate(selectedOwnerCandidate.id)}
+            canOpenChat={selectedOwnerCandidate ? ownerContactedIds.includes(selectedOwnerCandidate.id) : false}
+            onOpenChat={() => selectedOwnerCandidate && openOwnerGroupChat(selectedOwnerCandidate.id)}
             onOpenIntro={() => selectedOwnerCandidate && openOwnerIntro(selectedOwnerCandidate.id, "ownerCandidateDetail")}
           />
         );
@@ -1080,6 +1219,49 @@ function App() {
               clearStatus();
             }}
             onSend={handleSendOwnerIntro}
+          />
+        );
+
+      case "ownerGroupChat":
+        return (
+          <OwnerGroupChatPage
+            threadCandidates={ownerChatPool}
+            activeCandidateId={activeOwnerChatCandidate?.id ?? null}
+            getThread={getOwnerChatThread}
+            onOpenThread={(candidateId) => {
+              setSelectedOwnerCandidateId(candidateId);
+              clearStatus();
+              setScreen("ownerChatThread");
+            }}
+          />
+        );
+
+      case "ownerChatThread":
+        return (
+          <OwnerChatThreadPage
+            listing={ownerListing}
+            candidate={activeOwnerChatCandidate}
+            activeThread={activeOwnerChatThread}
+            draft={currentOwnerChatDraft}
+            status={status}
+            onBack={() => {
+              setScreen("ownerGroupChat");
+              clearStatus();
+            }}
+            onOpenCandidate={() =>
+              activeOwnerChatCandidate && openOwnerCandidateDetail(activeOwnerChatCandidate.id, "ownerGroupChat")
+            }
+            onChangeDraft={(value) => {
+              if (!activeOwnerChatCandidate) {
+                return;
+              }
+
+              setOwnerChatDrafts((current) => ({ ...current, [activeOwnerChatCandidate.id]: value }));
+              if (status.kind === "error") {
+                clearStatus();
+              }
+            }}
+            onSend={handleSendOwnerChatMessage}
           />
         );
 

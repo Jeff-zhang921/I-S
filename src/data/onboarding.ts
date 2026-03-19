@@ -24,6 +24,8 @@ export const screenTitles = {
   matchDetail: "Match detail",
   savedList: "Saved list",
   sendIntro: "Send intro",
+  ownerGroupChat: "Owner chats",
+  ownerChatThread: "Owner chat thread",
   profile: "Profile",
   groupChat: "Group chat",
   chatThread: "Chat thread"

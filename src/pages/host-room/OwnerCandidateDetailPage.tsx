@@ -7,6 +7,8 @@ type OwnerCandidateDetailPageProps = {
   onBack: () => void;
   onSave: () => void;
   onLike: () => void;
+  canOpenChat: boolean;
+  onOpenChat: () => void;
   onOpenIntro: () => void;
 };
 
@@ -16,6 +18,8 @@ function OwnerCandidateDetailPage({
   onBack,
   onSave,
   onLike,
+  canOpenChat,
+  onOpenChat,
   onOpenIntro
 }: OwnerCandidateDetailPageProps) {
   if (!candidate) {
@@ -134,6 +138,9 @@ function OwnerCandidateDetailPage({
           </button>
           <button type="button" className="secondary-button" onClick={onLike}>
             Like
+          </button>
+          <button type="button" className="secondary-button" onClick={onOpenChat} disabled={!canOpenChat}>
+            Chat
           </button>
           <button type="button" className="primary-button" onClick={onOpenIntro}>
             Send intro
