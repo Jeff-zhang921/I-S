@@ -181,8 +181,8 @@ function QuizPage({
                 <label className="text-card-label">
                   Add profile notes
                   <textarea
-                    className="question-textarea"
-                    rows={5}
+                    className="question-textarea question-textarea-compact"
+                    rows={3}
                     placeholder={currentQuestion.placeholder}
                     value={currentTextValue}
                     onChange={(event) => onTextChange(currentQuestion.field, event.target.value)}
@@ -208,19 +208,21 @@ function QuizPage({
           </article>
         </div>
 
-        <StatusBanner status={status} />
+        <div className="quiz-footer">
+          <StatusBanner status={status} />
 
-        <div className="button-row quiz-actions">
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back
-          </button>
-          {currentQuestion.type === "scale" ? (
-            <p className="inline-note">Tap any choice and the next question slides in.</p>
-          ) : (
-            <button type="button" className="primary-button" onClick={onTextSubmit}>
-              {currentQuestion.buttonLabel}
+          <div className="button-row quiz-actions">
+            <button type="button" className="secondary-button" onClick={onBack}>
+              Back
             </button>
-          )}
+            {currentQuestion.type === "scale" ? (
+              <p className="inline-note">Tap any choice and the next question slides in.</p>
+            ) : (
+              <button type="button" className="primary-button" onClick={onTextSubmit}>
+                {currentQuestion.buttonLabel}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>

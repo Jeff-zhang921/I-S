@@ -26,7 +26,7 @@ function MatchFeedPage({
 }: MatchFeedPageProps) {
   if (!currentMatch) {
     return (
-      <section className="screen branch-screen">
+      <section className="screen branch-screen feed-screen">
         <div className="empty-panel">
           <h3>No results in the feed.</h3>
           <p>Go back to filters and broaden the search.</p>
@@ -39,8 +39,8 @@ function MatchFeedPage({
   }
 
   return (
-    <section className="screen branch-screen">
-      <div className="summary-hero">
+    <section className="screen branch-screen feed-screen">
+      <div className="summary-hero feed-hero">
         <p className="eyebrow">Page 9 of 10</p>
         <h1>Match feed for the renter journey.</h1>
         <p className="lede">
@@ -61,38 +61,40 @@ function MatchFeedPage({
           </div>
         </aside>
 
-        <article className="feed-card">
-          <div className="listing-top">
-            <div>
-              <h2>{currentMatch.roomTitle}</h2>
-              <p className="listing-meta">{currentMatch.neighborhood} • {formatPrice(currentMatch.monthlyRent)} / month</p>
+        <article className="feed-card feed-card-docked">
+          <div className="feed-card-scroll">
+            <div className="listing-top">
+              <div>
+                <h2>{currentMatch.roomTitle}</h2>
+                <p className="listing-meta">{currentMatch.neighborhood} • {formatPrice(currentMatch.monthlyRent)} / month</p>
+              </div>
+              <div className="match-score-pill">{currentMatch.score}% fit</div>
             </div>
-            <div className="match-score-pill">{currentMatch.score}% fit</div>
+
+            <p>{currentMatch.roommate.name}, {currentMatch.roommate.age} • {currentMatch.roommate.major}</p>
+            <p>{currentMatch.roommate.vibe}</p>
+
+            <div className="listing-facts">
+              <span>Move-in {formatMoveIn(currentMatch.moveIn)}</span>
+              <span>{currentMatch.leaseLength}</span>
+              <span>{currentMatch.commuteMinutes} min commute</span>
+              <span>{currentMatch.petFriendly ? "Pet-friendly" : "No pets"}</span>
+            </div>
+
+            <div className="tag-preview">
+              {currentMatch.amenities.map((amenity) => (
+                <span key={amenity} className="tag-chip">{amenity}</span>
+              ))}
+            </div>
+
+            <div className="button-row compact-actions">
+              <button type="button" className="secondary-button" onClick={onInspect}>
+                Why this match?
+              </button>
+            </div>
           </div>
 
-          <p>{currentMatch.roommate.name}, {currentMatch.roommate.age} • {currentMatch.roommate.major}</p>
-          <p>{currentMatch.roommate.vibe}</p>
-
-          <div className="listing-facts">
-            <span>Move-in {formatMoveIn(currentMatch.moveIn)}</span>
-            <span>{currentMatch.leaseLength}</span>
-            <span>{currentMatch.commuteMinutes} min commute</span>
-            <span>{currentMatch.petFriendly ? "Pet-friendly" : "No pets"}</span>
-          </div>
-
-          <div className="tag-preview">
-            {currentMatch.amenities.map((amenity) => (
-              <span key={amenity} className="tag-chip">{amenity}</span>
-            ))}
-          </div>
-
-          <div className="button-row compact-actions">
-            <button type="button" className="secondary-button" onClick={onInspect}>
-              Why this match?
-            </button>
-          </div>
-
-          <div className="feed-actions">
+          <div className="feed-actions feed-actions-docked">
             <button type="button" className="feed-action pass-action" onClick={onPass}>
               Pass
             </button>

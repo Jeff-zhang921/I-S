@@ -147,9 +147,9 @@ function MatchDetailPage({ match, onBack, onSave, onLike, canOpenChat, onOpenInt
         </section>
       </div>
 
-      <div className="button-row">
+      <div className="button-row detail-action-footer">
         <button type="button" className="secondary-button" onClick={onBack}>Back</button>
-        <div className="button-row compact-actions">
+        <div className="button-row compact-actions detail-action-group">
           <button type="button" className="secondary-button" onClick={onSave}>Save</button>
           <button type="button" className="secondary-button" disabled={!canOpenChat} onClick={onOpenChat}>
             {canOpenChat ? "Open group chat" : "Like to unlock chat"}

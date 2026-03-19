@@ -239,10 +239,15 @@ function App() {
     "savedList",
     "sendIntro",
     "groupChat",
-    "chatThread",
     "profile"
   ].includes(screen);
-  const lockAppScroll = screen === "account" || screen === "quiz" || screen === "groupChat" || screen === "chatThread";
+  const lockAppScroll =
+    screen === "account" ||
+    screen === "verify" ||
+    screen === "quiz" ||
+    screen === "matchFeed" ||
+    screen === "groupChat" ||
+    screen === "chatThread";
 
   const activeRenterNav = (() => {
     switch (screen) {

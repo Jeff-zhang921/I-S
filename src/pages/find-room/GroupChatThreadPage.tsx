@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import StatusBanner from "../../components/StatusBanner";
 import { GroupChatThread, ScoredRoomMatch, StatusState } from "../../types";
 
@@ -22,6 +23,24 @@ function GroupChatThreadPage({
   onChangeDraft,
   onSend
 }: GroupChatThreadPageProps) {
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeThread) {
+      return;
+    }
+
+    const scrollToLatest = () => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end"
+      });
+    };
+
+    const frameId = window.requestAnimationFrame(scrollToLatest);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeThread?.matchId, activeThread?.messages.length]);
+
   if (!activeMatch || !activeThread) {
     return (
       <section className="screen chat-screen">
@@ -38,27 +57,25 @@ function GroupChatThreadPage({
   return (
     <section className="screen chat-screen">
       <div className="chat-shell chat-thread-shell">
-        <header className="chat-header chat-thread-header">
-          <div className="chat-thread-header-top">
-            <button type="button" className="secondary-button" onClick={onBack}>
-              Back to chats
-            </button>
-            <button type="button" className="secondary-button" onClick={onOpenMatch}>
-              View room
-            </button>
-          </div>
-
-          <div>
-            <p className="eyebrow">Chat thread</p>
+        <header className="chat-thread-toolbar">
+          <button type="button" className="secondary-button chat-toolbar-button" onClick={onBack}>
+            Back
+          </button>
+          <div className="chat-thread-title-block">
             <h1>{activeThread.title}</h1>
-            <p className="chat-subtitle">Contact the owner and current tenant for {activeMatch.roomTitle}.</p>
+            <p className="chat-thread-context">
+              {activeMatch.roomTitle} | {activeThread.participants.length} people
+            </p>
           </div>
+          <button type="button" className="secondary-button chat-toolbar-button" onClick={onOpenMatch}>
+            Room
+          </button>
         </header>
 
         <div className="tag-preview chat-participant-strip">
           {activeThread.participants.map((participant) => (
             <span key={participant.id} className="tag-chip">
-              {participant.name} - {participant.label}
+              {participant.name}
             </span>
           ))}
         </div>
@@ -79,6 +96,7 @@ function GroupChatThreadPage({
                 </article>
               );
             })}
+            <div ref={messagesEndRef} aria-hidden="true" />
           </div>
 
           <div className="chat-composer chat-composer-bar">

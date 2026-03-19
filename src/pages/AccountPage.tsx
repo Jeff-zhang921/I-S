@@ -42,7 +42,7 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
             <p>Use the demo account or type details manually.</p>
           </div>
 
-          <div className="starter-row">
+          <div className="starter-row account-starter-row">
             {starters.map((starter) => (
               <button
                 key={starter.title}
@@ -56,8 +56,8 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
             ))}
           </div>
 
-          <form className="stack-form" onSubmit={onSubmit} noValidate>
-            <div className="field-grid">
+          <form className="stack-form account-form" onSubmit={onSubmit} noValidate>
+            <div className="field-grid account-field-grid">
               <label>
                 Full name
                 <input
@@ -101,7 +101,7 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
 
             <StatusBanner status={status} />
 
-            <div className="button-row">
+            <div className="button-row account-actions">
               <p className="inline-note">The prototype always starts at sign-up because there is no backend auth.</p>
               <button className="primary-button" type="submit">
                 Continue to verification
