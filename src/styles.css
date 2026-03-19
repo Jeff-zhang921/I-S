@@ -40,7 +40,8 @@ body {
   min-height: 100dvh;
   font-family: "Sora", "Segoe UI", sans-serif;
   color: var(--ink-950);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior-y: auto;
   background:
     radial-gradient(circle at top left, rgba(240, 123, 90, 0.28), transparent 28%),
@@ -57,7 +58,7 @@ textarea {
 
 button {
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -69,8 +70,9 @@ p {
 }
 
 .app {
-  height: 100dvh;
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   padding-top: max(16px, env(safe-area-inset-top));
   padding-right: max(16px, env(safe-area-inset-right));
   padding-bottom: max(16px, env(safe-area-inset-bottom));
@@ -82,9 +84,8 @@ p {
 .orb {
   position: absolute;
   border-radius: 999px;
-  filter: blur(8px);
-  opacity: 0.92;
-  animation: float 12s ease-in-out infinite;
+  opacity: 0.42;
+  animation: none;
 }
 
 .orb-a {
@@ -116,16 +117,15 @@ p {
 .stage-shell {
   width: min(1240px, 100%);
   margin: 0 auto;
-  height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   min-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  flex: 1;
   display: flex;
   flex-direction: column;
   border-radius: 34px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(15, 28, 48, 0.1);
+  overflow: visible;
   position: relative;
   z-index: 1;
 }
@@ -139,11 +139,9 @@ p {
 
 .app-view {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  min-height: auto;
+  overflow: visible;
+  overscroll-behavior-y: auto;
 }
 
 .chat-app-view {
@@ -192,11 +190,9 @@ p {
   padding: 12px 16px;
   border: 1px solid rgba(23, 34, 54, 0.08);
   border-radius: 26px;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 20px 48px rgba(15, 28, 48, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 24px rgba(15, 28, 48, 0.1);
   transition: transform 0.22s ease;
-  will-change: transform;
 }
 
 .bottom-nav-item {
@@ -328,9 +324,8 @@ p {
 .account-screen,
 .verify-screen,
 .quiz-screen-fixed {
-  height: 100%;
   min-height: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hero-pane,
@@ -644,12 +639,16 @@ p {
 }
 
 .quiz-screen-fixed .quiz-stage {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .quiz-screen-fixed .question-stack {
   min-height: 0;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .quiz-rail,
@@ -929,6 +928,142 @@ p {
   background: rgba(43, 133, 211, 0.08);
 }
 
+.swipe-scale-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.swipe-scale-readout {
+  display: grid;
+  gap: 6px;
+}
+
+.swipe-scale-readout strong {
+  color: var(--ink-950);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+}
+
+.swipe-scale-readout span {
+  color: var(--ink-700);
+  font-size: 0.96rem;
+}
+
+.swipe-scale-track {
+  position: relative;
+  min-height: 108px;
+  border: 1px solid rgba(23, 34, 54, 0.08);
+  border-radius: 28px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(237, 246, 255, 0.82));
+  padding: 26px 18px;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+
+.swipe-scale-track:focus-visible {
+  box-shadow: 0 0 0 4px rgba(43, 133, 211, 0.12);
+  border-color: rgba(43, 133, 211, 0.28);
+}
+
+.swipe-scale-rail,
+.swipe-scale-fill {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  top: 50%;
+  height: 10px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.swipe-scale-rail {
+  background: rgba(23, 34, 54, 0.08);
+}
+
+.swipe-scale-fill {
+  right: auto;
+  background: linear-gradient(90deg, var(--mint), var(--blue));
+}
+
+.swipe-scale-stops {
+  position: absolute;
+  inset: 50% 18px auto;
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  pointer-events: none;
+}
+
+.swipe-scale-stop {
+  justify-self: center;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid rgba(23, 34, 54, 0.12);
+  color: transparent;
+  box-shadow: 0 4px 10px rgba(15, 28, 48, 0.08);
+}
+
+.swipe-scale-stop.active {
+  background: linear-gradient(135deg, var(--coral), var(--blue));
+  border-color: transparent;
+}
+
+.swipe-scale-thumb {
+  position: absolute;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, var(--coral), var(--blue));
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(43, 133, 211, 0.24);
+}
+
+.swipe-scale-thumb strong {
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.swipe-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-600);
+  font-size: 0.84rem;
+}
+
+.swipe-scale-chips {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.swipe-scale-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px 0;
+  color: var(--ink-800);
+  font-weight: 700;
+}
+
+.swipe-scale-chip.active {
+  border-color: rgba(43, 133, 211, 0.28);
+  background: rgba(43, 133, 211, 0.08);
+  color: var(--ink-950);
+}
+
 .quiz-actions {
   align-items: center;
 }
@@ -936,6 +1071,12 @@ p {
 .quiz-footer {
   display: grid;
   gap: 12px;
+}
+
+.quiz-screen-fixed .quiz-footer {
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 34, 54, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.94) 24%);
 }
 
 .verify-fields {
@@ -946,6 +1087,34 @@ p {
 .verify-footer {
   display: grid;
   gap: 12px;
+}
+
+.verify-screen .panel-pane {
+  display: flex;
+  overflow: visible;
+}
+
+.verify-screen .verify-panel-shell {
+  flex: 1;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.verify-screen .verify-form {
+  min-height: auto;
+  grid-template-rows: auto auto;
+}
+
+.verify-screen .verify-fields {
+  min-height: auto;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.verify-screen .verify-footer {
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 34, 54, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.94) 24%);
 }
 
 .quiz-tag-preview {
@@ -1237,6 +1406,11 @@ p {
 }
 
 @media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   .verify-screen {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
@@ -1250,7 +1424,7 @@ p {
     display: flex;
     border-left: none;
     padding: 18px 16px;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .verify-screen .verify-panel-shell {
@@ -1267,13 +1441,13 @@ p {
   }
 
   .verify-screen .verify-form {
-    min-height: 0;
+    min-height: auto;
     gap: 8px;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
   }
 
   .verify-screen .verify-fields {
-    min-height: 0;
+    min-height: auto;
     gap: 8px;
     align-content: start;
   }
@@ -1360,7 +1534,7 @@ p {
     display: flex;
     border-left: none;
     padding: 18px 16px;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .account-screen .panel-shell {
@@ -1385,9 +1559,9 @@ p {
   }
 
   .account-screen .account-form {
-    min-height: 0;
+    min-height: auto;
     gap: 10px;
-    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto auto auto;
   }
 
   .account-screen .account-field-grid {
@@ -1575,6 +1749,53 @@ p {
     overflow-wrap: anywhere;
   }
 
+  .swipe-scale-shell {
+    gap: 14px;
+  }
+
+  .swipe-scale-track {
+    min-height: 92px;
+    padding: 22px 14px;
+    border-radius: 22px;
+  }
+
+  .swipe-scale-rail,
+  .swipe-scale-fill {
+    left: 22px;
+    right: 22px;
+  }
+
+  .swipe-scale-stops {
+    inset-inline: 14px;
+  }
+
+  .swipe-scale-thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  .swipe-scale-thumb strong {
+    font-size: 1.05rem;
+  }
+
+  .swipe-scale-readout strong {
+    font-size: 1.65rem;
+  }
+
+  .swipe-scale-readout span,
+  .swipe-scale-labels {
+    font-size: 0.78rem;
+  }
+
+  .swipe-scale-chips {
+    gap: 6px;
+  }
+
+  .swipe-scale-chip {
+    padding: 8px 0;
+    font-size: 0.82rem;
+  }
+
   .text-card-flow {
     min-height: 0;
     gap: 10px;
@@ -1692,9 +1913,8 @@ p {
 }
 
 .feed-screen {
-  height: 100%;
   min-height: 100%;
-  overflow: hidden;
+  overflow: visible;
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -1746,6 +1966,90 @@ p {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
+}
+
+.owner-listing-layout,
+.owner-candidate-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.95fr);
+  gap: 20px;
+}
+
+.owner-form-panel,
+.owner-preview-panel,
+.owner-candidate-card {
+  display: grid;
+  gap: 18px;
+}
+
+.owner-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.owner-preview-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 1px solid rgba(23, 34, 54, 0.08);
+  background: rgba(23, 34, 54, 0.05);
+}
+
+.owner-preview-image-large {
+  grid-column: 1 / -1;
+}
+
+.owner-candidate-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.owner-candidate-top-detail {
+  align-items: center;
+}
+
+.owner-candidate-copy {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.candidate-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 1px solid rgba(23, 34, 54, 0.08);
+  background: rgba(23, 34, 54, 0.05);
+  flex: 0 0 auto;
+}
+
+.candidate-avatar-large {
+  width: 108px;
+  height: 108px;
+}
+
+.candidate-avatar-xl {
+  width: 128px;
+  height: 128px;
+  border-radius: 30px;
+}
+
+.owner-inline-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(23, 34, 54, 0.04);
+}
+
+.owner-listing-detail-image {
+  margin-bottom: 16px;
 }
 
 .branch-card {
@@ -1985,11 +2289,11 @@ p {
 }
 
 .feed-card-docked {
-  height: 100%;
+  height: auto;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   gap: 16px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .feed-card-scroll {
@@ -1997,11 +2301,8 @@ p {
   display: grid;
   align-content: start;
   gap: 18px;
-  overflow-y: auto;
-  padding-right: 4px;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .feed-actions {
@@ -2142,20 +2443,20 @@ p {
 
 .chat-screen {
   min-height: 100%;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .chat-shell {
-  flex: 1;
-  height: 100%;
+  flex: none;
+  height: auto;
   min-height: 0;
   display: grid;
   gap: 16px;
   padding: clamp(16px, 2.4vw, 24px);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .chat-empty-shell {
@@ -2211,8 +2512,8 @@ p {
 }
 
 .chat-list-shell {
-  min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
+  min-height: auto;
+  grid-template-rows: auto auto;
 }
 
 .chat-sidebar,
@@ -2227,12 +2528,9 @@ p {
 }
 
 .chat-thread-list-scroll {
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  min-height: auto;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .chat-thread-item {
@@ -2290,9 +2588,13 @@ p {
 }
 
 .chat-thread-shell {
-  height: 100%;
+  height: auto;
   min-height: 0;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+}
+
+.keyboard-open .chat-thread-shell {
+  padding-bottom: 0;
 }
 
 .chat-thread-toolbar {
@@ -2351,28 +2653,29 @@ p {
 }
 
 .chat-thread-body {
-  min-height: 0;
+  min-height: auto;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   gap: 10px;
   padding: 12px;
   border-radius: 26px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.82);
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.keyboard-open .chat-thread-body {
+  padding-bottom: 0;
 }
 
 .chat-messages {
   display: grid;
   align-content: start;
   gap: 12px;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  min-height: auto;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .chat-bubble {
@@ -2475,6 +2778,8 @@ p {
 @media (max-width: 1120px) {
   .topbar-copy,
   .branch-grid,
+  .owner-listing-layout,
+  .owner-candidate-grid,
   .listing-grid,
   .filter-shell,
   .suggestion-grid,
@@ -2530,6 +2835,16 @@ p {
 
   .feed-screen {
     gap: 16px;
+  }
+
+  .owner-candidate-top {
+    flex-direction: column;
+  }
+
+  .candidate-avatar-large,
+  .candidate-avatar-xl {
+    width: 96px;
+    height: 96px;
   }
 
   .feed-hero {
@@ -2671,5 +2986,21 @@ p {
   .feed-card,
   .empty-panel {
     padding: 20px;
+  }
+
+  .owner-photo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 20px;
+  }
+
+  .candidate-avatar-large,
+  .candidate-avatar-xl {
+    width: 84px;
+    height: 84px;
   }
 }

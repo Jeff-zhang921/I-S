@@ -1,4 +1,5 @@
 import StatusBanner from "../components/StatusBanner";
+import SwipeScalePicker from "../components/SwipeScalePicker";
 import { parseProfileList } from "../lib/onboarding";
 import {
   CategoryMeta,
@@ -29,7 +30,7 @@ type QuizPageProps = {
   privacyLevelMeta: PrivacyLevelOption;
   scaleChoices: ScaleChoice[];
   status: StatusState;
-  onAnswer: (value: number) => void;
+  onScaleCommit: (value: number) => void;
   onBack: () => void;
   onTextChange: <K extends keyof ProfileNotesState>(field: K, value: ProfileNotesState[K]) => void;
   onTextSubmit: () => void;
@@ -54,7 +55,7 @@ function QuizPage({
   privacyLevelMeta,
   scaleChoices,
   status,
-  onAnswer,
+  onScaleCommit,
   onBack,
   onTextChange,
   onTextSubmit,
@@ -163,19 +164,12 @@ function QuizPage({
             <p className="question-hint">{currentQuestion.hint}</p>
 
             {currentQuestion.type === "scale" ? (
-              <div className="rating-grid" role="group" aria-label={`Choose a level for: ${currentQuestion.prompt}`}>
-                {scaleChoices.map((choice) => (
-                  <button
-                    key={choice.value}
-                    type="button"
-                    className={quizAnswers[currentQuestion.id] === choice.value ? "rating-choice selected" : "rating-choice"}
-                    onClick={() => onAnswer(choice.value)}
-                  >
-                    <strong>{choice.value}</strong>
-                    <span>{choice.label}</span>
-                  </button>
-                ))}
-              </div>
+              <SwipeScalePicker
+                key={currentQuestion.id}
+                choices={scaleChoices}
+                value={quizAnswers[currentQuestion.id]}
+                onCommit={onScaleCommit}
+              />
             ) : (
               <div className="text-card-flow">
                 <label className="text-card-label">
@@ -216,7 +210,7 @@ function QuizPage({
               Back
             </button>
             {currentQuestion.type === "scale" ? (
-              <p className="inline-note">Tap any choice and the next question slides in.</p>
+              <p className="inline-note">Tap 1-5 or drag the slider. The next card opens immediately.</p>
             ) : (
               <button type="button" className="primary-button" onClick={onTextSubmit}>
                 {currentQuestion.buttonLabel}

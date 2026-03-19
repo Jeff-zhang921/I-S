@@ -1,15 +1,16 @@
 type PathChoicePageProps = {
   onChooseNeedRoom: () => void;
+  onChooseHaveRoom: () => void;
 };
 
-function PathChoicePage({ onChooseNeedRoom }: PathChoicePageProps) {
+function PathChoicePage({ onChooseNeedRoom, onChooseHaveRoom }: PathChoicePageProps) {
   return (
     <section className="screen branch-screen">
       <div className="summary-hero">
         <p className="eyebrow">Page 5 of 10</p>
         <h1>Choose the branch from the core flow.</h1>
         <p className="lede">
-          This implementation only completes the renter path. The listing-owner path stays visible as a placeholder.
+          Both main FigJam branches now continue from this decision point.
         </p>
       </div>
 
@@ -26,12 +27,14 @@ function PathChoicePage({ onChooseNeedRoom }: PathChoicePageProps) {
           </button>
         </article>
 
-        <article className="branch-card branch-card-muted">
+        <article className="branch-card branch-card-active">
           <p className="panel-kicker">Have a room</p>
           <h2>Create a listing</h2>
-          <p>This branch is intentionally not implemented in this pass.</p>
-          <button type="button" className="secondary-button" disabled>
-            Coming later
+          <p>
+            Continue through listing setup, renter suggestions, owner match feed, profile review, save, and intro outreach.
+          </p>
+          <button type="button" className="primary-button" onClick={onChooseHaveRoom}>
+            Start owner journey
           </button>
         </article>
       </div>

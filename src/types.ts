@@ -16,6 +16,13 @@ export type ScreenId =
   | "matchDetail"
   | "savedList"
   | "sendIntro"
+  | "ownerListing"
+  | "ownerSuggestions"
+  | "ownerMatchFeed"
+  | "ownerCandidateDetail"
+  | "ownerSavedList"
+  | "ownerSendIntro"
+  | "ownerProfile"
   | "profile"
   | "groupChat"
   | "chatThread";
@@ -97,6 +104,23 @@ export type FiltersState = {
 
 export type RoomAmenity = "Laundry" | "Dishwasher" | "Gym" | "Roof deck" | "Near transit" | "Parking" | "Furnished";
 
+export type OwnerListingDraft = {
+  title: string;
+  neighborhood: string;
+  monthlyRent: number;
+  availableFrom: string;
+  leaseLength: string;
+  roomSize: string;
+  bathrooms: string;
+  householdSize: string;
+  bills: string;
+  summary: string;
+  houseRules: string;
+  petFriendly: boolean;
+  amenities: RoomAmenity[];
+  photoUrls: string[];
+};
+
 export type RoommateMatch = {
   id: string;
   roomTitle: string;
@@ -120,6 +144,28 @@ export type RoommateMatch = {
 };
 
 export type ScoredRoomMatch = RoommateMatch & {
+  score: number;
+  alignedOn: string;
+};
+
+export type OwnerCandidate = {
+  id: string;
+  name: string;
+  age: number;
+  major: string;
+  budget: string;
+  moveInWindow: string;
+  leasePreference: string;
+  vibe: string;
+  bio: string;
+  profilePhoto: string;
+  highlights: string[];
+  whyMatch: string[];
+  quickQuestions: string[];
+  compatibilityTarget: MatchTarget;
+};
+
+export type ScoredOwnerCandidate = OwnerCandidate & {
   score: number;
   alignedOn: string;
 };
