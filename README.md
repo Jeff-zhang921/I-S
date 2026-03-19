@@ -1,21 +1,30 @@
-﻿# Roommate Match Prototype
+# Roommate Match Prototype
 
-Frontend-only prototype for the Roommate Match app flow.
+Frontend-only prototype built with React + TypeScript.
 
 ## Current scope
 
-- Login page only (first screen)
-- Fake in-browser data (no backend)
-- Demo accounts for fast testing
+- Sign-up first screen instead of sign-in
+- Identity verification step with demo email or phone code
+- Onboarding quiz covering basics, lifestyle, interests, dealbreakers, and privacy
+- Profile review screen with sample roommate recommendations
+- Fake in-browser data only, with no backend integration
+
+## Tech stack
+
+- React 18
+- TypeScript
+- Vite
 
 ## Run locally
 
-Open `index.html` directly in your browser.
+1. `npm install`
+2. `npm run dev`
 
-No install step is required.
+Then open the local Vite URL printed in the terminal.
 
-## Demo login accounts
+## Prototype notes
 
-- `maya@campus.edu` / `demo1234`
-- `ethan@campus.edu` / `roommate!`
-- `zoe@campus.edu` / `prototype1`
+- Use `246810` as the verification code on the identity step
+- Sample drafts are available on the sign-up screen for quick testing
+- Suggested roommate cards on the final step use local fake data
