@@ -4,11 +4,11 @@ Frontend-only prototype built with React + TypeScript.
 
 ## Current scope
 
-- Sign-up first screen instead of sign-in
-- Identity verification step with demo email or phone code
-- Onboarding quiz covering basics, lifestyle, interests, dealbreakers, and privacy
-- Profile review screen with sample roommate recommendations
-- Fake in-browser data only, with no backend integration
+- Separate pages for sign-up, verification, questionnaire, and summary
+- Swipe-style questionnaire with one card per question
+- 20 multiple-choice questions across 5 categories
+- 1 to 5 answer scale on every questionnaire prompt
+- Summary page with category signals and sample roommate matches
 
 ## Tech stack
 
@@ -25,6 +25,6 @@ Then open the local Vite URL printed in the terminal.
 
 ## Prototype notes
 
-- Use `246810` as the verification code on the identity step
-- Sample drafts are available on the sign-up screen for quick testing
-- Suggested roommate cards on the final step use local fake data
+- The verification page uses demo code `246810`
+- The questionnaire auto-advances after each answer
+- Match cards on the summary page use local fake data

@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
-import { FakeUser, fakeUsers } from "./data/fakeUsers";
+import { fakeUsers } from "./data/fakeUsers";
 import "./styles.css";
 
 type StatusState =
@@ -7,429 +7,611 @@ type StatusState =
   | { kind: "error"; message: string }
   | { kind: "success"; message: string };
 
-type StepId =
-  | "account"
-  | "verify"
-  | "basics"
-  | "lifestyle"
-  | "interests"
-  | "dealbreakers"
-  | "privacy"
-  | "profile";
+type ScreenId = "account" | "verify" | "quiz" | "summary";
+type CategoryId = "basics" | "lifestyle" | "interests" | "dealbreakers" | "privacy";
+type VerificationMethod = "email" | "phone";
+type IdCheckChoice = "skip" | "include";
 
-type FormState = {
+type AccountState = {
   fullName: string;
   email: string;
   phone: string;
   password: string;
-  verificationMethod: "email" | "phone";
+  verificationMethod: VerificationMethod;
   verificationCode: string;
-  optionalIdCheck: boolean;
-  location: string;
-  budget: string;
-  moveInDate: string;
-  leaseLength: string;
-  sleepSchedule: string;
-  cleanliness: string;
-  guests: string;
-  pets: string;
-  smoking: string;
-  hobbies: string;
-  music: string;
-  sports: string;
-  gaming: string;
-  cooking: string;
-  socialLevel: string;
-  mustHaves: string;
-  dealbreakers: string;
-  whoCanMessage: string;
-  profileVisibility: string;
-  shareProfile: string;
-  safetyReady: boolean;
+  idCheckChoice: IdCheckChoice;
 };
 
-type StepMeta = {
-  id: StepId;
-  kicker: string;
-  title: string;
-  description: string;
+type Question = {
+  id: string;
+  category: CategoryId;
+  prompt: string;
+  hint: string;
 };
+
+type CategoryMeta = {
+  id: CategoryId;
+  title: string;
+  summary: string;
+  accent: string;
+};
+
+type MatchTarget = Record<CategoryId, number>;
+type QuizAnswers = Record<string, number>;
 
 const DEMO_VERIFICATION_CODE = "246810";
 
-const steps: StepMeta[] = [
-  {
-    id: "account",
-    kicker: "Step 1",
-    title: "Create account",
-    description: "Prototype mode starts every session with sign-up because there is no backend auth yet."
-  },
-  {
-    id: "verify",
-    kicker: "Step 2",
-    title: "Verify identity",
-    description: "Collect a demo email or phone confirmation and offer the optional ID check from the flow."
-  },
+const screenOrder: ScreenId[] = ["account", "verify", "quiz", "summary"];
+
+const screenTitles: Record<ScreenId, string> = {
+  account: "Create account",
+  verify: "Verify identity",
+  quiz: "Questionnaire",
+  summary: "Profile summary"
+};
+
+const categoryMeta: CategoryMeta[] = [
   {
     id: "basics",
-    kicker: "Step 3",
-    title: "Onboarding quiz: basics",
-    description: "Capture the practical constraints that shape roommate and room recommendations."
+    title: "Basics",
+    summary: "Budget, timing, and move-in priorities.",
+    accent: "coral"
   },
   {
     id: "lifestyle",
-    kicker: "Step 4",
-    title: "Onboarding quiz: lifestyle",
-    description: "Record daily habits so compatibility can reflect how people actually live."
+    title: "Lifestyle",
+    summary: "Daily routine and home habits.",
+    accent: "mint"
   },
   {
     id: "interests",
-    kicker: "Step 5",
-    title: "Onboarding quiz: interests",
-    description: "Gather personality and social preferences instead of only logistics."
+    title: "Interests",
+    summary: "Shared energy, hobbies, and social fit.",
+    accent: "blue"
   },
   {
     id: "dealbreakers",
-    kicker: "Step 6",
-    title: "Dealbreakers + must-haves",
-    description: "Make the non-negotiables explicit before people start matching."
+    title: "Boundaries",
+    summary: "Non-negotiables for living together.",
+    accent: "gold"
   },
   {
     id: "privacy",
-    kicker: "Step 7",
-    title: "Privacy & safety",
-    description: "Define how visible the profile is and who can contact the user."
-  },
-  {
-    id: "profile",
-    kicker: "Step 8",
-    title: "Create profile",
-    description: "Package the sign-up and quiz answers into the profile this prototype can use next."
+    title: "Safety",
+    summary: "Visibility, trust, and profile control.",
+    accent: "rose"
   }
 ];
 
-const initialFormState: FormState = {
+const questionBank: Question[] = [
+  {
+    id: "commute_priority",
+    category: "basics",
+    prompt: "I would pay more if it meant a much shorter commute.",
+    hint: "Rate how strongly this sounds like you."
+  },
+  {
+    id: "lock_place_early",
+    category: "basics",
+    prompt: "I want to lock down housing as early as possible.",
+    hint: "Higher means you want less uncertainty."
+  },
+  {
+    id: "long_lease",
+    category: "basics",
+    prompt: "I prefer a longer lease over something temporary.",
+    hint: "Higher means you value stability."
+  },
+  {
+    id: "budget_flex",
+    category: "basics",
+    prompt: "I can stretch my budget if the room and roommate are right.",
+    hint: "Higher means you are more flexible on price."
+  },
+  {
+    id: "tidy_shared_spaces",
+    category: "lifestyle",
+    prompt: "I keep shared spaces very tidy without being reminded.",
+    hint: "Think kitchen, bathroom, and living room habits."
+  },
+  {
+    id: "quiet_at_night",
+    category: "lifestyle",
+    prompt: "I want the apartment to stay quiet late at night.",
+    hint: "Higher means quiet evenings matter a lot."
+  },
+  {
+    id: "early_routine",
+    category: "lifestyle",
+    prompt: "My weekdays usually start early.",
+    hint: "Higher means you are more morning-oriented."
+  },
+  {
+    id: "guest_friendly",
+    category: "lifestyle",
+    prompt: "I am comfortable with guests being around fairly often.",
+    hint: "Higher means you are more open to visitors."
+  },
+  {
+    id: "hang_out_roommate",
+    category: "interests",
+    prompt: "I want a roommate who actually hangs out with me.",
+    hint: "Higher means you want more built-in social time."
+  },
+  {
+    id: "shared_hobbies",
+    category: "interests",
+    prompt: "Shared hobbies matter a lot when choosing a roommate.",
+    hint: "Higher means common interests are a major factor."
+  },
+  {
+    id: "music_in_home",
+    category: "interests",
+    prompt: "Music playing in shared spaces is part of my normal routine.",
+    hint: "Higher means you expect a more active home atmosphere."
+  },
+  {
+    id: "cook_together",
+    category: "interests",
+    prompt: "I enjoy cooking or eating with roommates.",
+    hint: "Higher means food is part of the social vibe."
+  },
+  {
+    id: "chores_matter",
+    category: "dealbreakers",
+    prompt: "Clear chore expectations are non-negotiable for me.",
+    hint: "Higher means you want structure from day one."
+  },
+  {
+    id: "guest_rules",
+    category: "dealbreakers",
+    prompt: "Overnight guest rules need to be explicit.",
+    hint: "Higher means guest boundaries matter a lot."
+  },
+  {
+    id: "pet_open",
+    category: "dealbreakers",
+    prompt: "I am open to living with pets.",
+    hint: "Higher means pets are welcome in your living setup."
+  },
+  {
+    id: "smoke_free",
+    category: "dealbreakers",
+    prompt: "A smoke-free home is non-negotiable for me.",
+    hint: "Higher means this is a hard requirement."
+  },
+  {
+    id: "verified_only",
+    category: "privacy",
+    prompt: "I only want verified users to contact me.",
+    hint: "Higher means trust gates are important."
+  },
+  {
+    id: "share_after_match",
+    category: "privacy",
+    prompt: "I would rather unlock my full profile after mutual interest.",
+    hint: "Higher means you prefer slower profile sharing."
+  },
+  {
+    id: "safety_tools_first",
+    category: "privacy",
+    prompt: "Block and report tools matter as much as the match score.",
+    hint: "Higher means trust and safety is a top priority."
+  },
+  {
+    id: "visibility_control",
+    category: "privacy",
+    prompt: "I want tight control over who can see my profile.",
+    hint: "Higher means visibility settings matter a lot."
+  }
+];
+
+const scaleChoices = [
+  { value: 1, label: "Not me" },
+  { value: 2, label: "A little" },
+  { value: 3, label: "Sometimes" },
+  { value: 4, label: "Mostly" },
+  { value: 5, label: "Exactly me" }
+];
+
+const starterAccounts: Array<{
+  title: string;
+  description: string;
+  values: Pick<AccountState, "fullName" | "email" | "phone" | "password">;
+}> = [
+  {
+    title: "Quiet demo",
+    description: "Low-drama account draft for quick testing.",
+    values: {
+      fullName: "Maya Patel",
+      email: "maya@campus.edu",
+      phone: "(555) 010-1101",
+      password: "demo1234"
+    }
+  },
+  {
+    title: "Social demo",
+    description: "More outgoing draft for fast page testing.",
+    values: {
+      fullName: "Ethan Kim",
+      email: "ethan@campus.edu",
+      phone: "(555) 010-4477",
+      password: "roommate!"
+    }
+  }
+];
+
+const matchTargets: Record<string, MatchTarget> = {
+  "u-101": {
+    basics: 4.3,
+    lifestyle: 4.5,
+    interests: 2.7,
+    dealbreakers: 4.4,
+    privacy: 4.1
+  },
+  "u-102": {
+    basics: 3.2,
+    lifestyle: 2.9,
+    interests: 4.6,
+    dealbreakers: 3.1,
+    privacy: 3.0
+  },
+  "u-103": {
+    basics: 3.7,
+    lifestyle: 3.4,
+    interests: 4.0,
+    dealbreakers: 3.8,
+    privacy: 4.2
+  }
+};
+
+const initialAccountState: AccountState = {
   fullName: "",
   email: "",
   phone: "",
   password: "",
   verificationMethod: "email",
   verificationCode: "",
-  optionalIdCheck: false,
-  location: "",
-  budget: "",
-  moveInDate: "",
-  leaseLength: "",
-  sleepSchedule: "",
-  cleanliness: "",
-  guests: "",
-  pets: "",
-  smoking: "",
-  hobbies: "",
-  music: "",
-  sports: "",
-  gaming: "",
-  cooking: "",
-  socialLevel: "",
-  mustHaves: "",
-  dealbreakers: "",
-  whoCanMessage: "",
-  profileVisibility: "",
-  shareProfile: "",
-  safetyReady: false
+  idCheckChoice: "skip"
 };
 
-const sampleDrafts: Array<{ title: string; description: string; values: Partial<FormState> }> = [
-  {
-    title: "Quiet planner",
-    description: "Early move-in, tidy apartment, low-drama shared routine.",
-    values: {
-      fullName: "Maya Patel",
-      email: "maya@campus.edu",
-      phone: "555-010-1101",
-      password: "demo1234",
-      location: "Boston, MA",
-      budget: "$900-$1,100",
-      moveInDate: "2026-08-15",
-      leaseLength: "12 months",
-      sleepSchedule: "Early riser",
-      cleanliness: "Very tidy",
-      guests: "Occasionally",
-      pets: "No pets",
-      smoking: "No",
-      hobbies: "reading, pilates, weekend cafe hopping",
-      music: "Lo-fi and acoustic",
-      sports: "Casual",
-      gaming: "Rarely",
-      cooking: "Meal prep every week",
-      socialLevel: "Balanced",
-      mustHaves: "Quiet after 10pm, shared cleaning plan, natural light",
-      dealbreakers: "Indoor smoking, unpaid bills, frequent overnight guests",
-      whoCanMessage: "Matches only",
-      profileVisibility: "Visible in my city",
-      shareProfile: "After mutual interest",
-      safetyReady: true
-    }
+const categoryQuestionCounts = questionBank.reduce<Record<CategoryId, number>>(
+  (counts, question) => {
+    counts[question.category] += 1;
+    return counts;
   },
   {
-    title: "Social host",
-    description: "More outgoing, flexible routine, wants a lively but respectful space.",
-    values: {
-      fullName: "Ethan Kim",
-      email: "ethan@campus.edu",
-      phone: "555-010-4477",
-      password: "roommate!",
-      location: "Brooklyn, NY",
-      budget: "$800-$1,000",
-      moveInDate: "2026-09-01",
-      leaseLength: "9 months",
-      sleepSchedule: "Flexible",
-      cleanliness: "Moderately tidy",
-      guests: "Weekly",
-      pets: "Pet friendly",
-      smoking: "Outside only",
-      hobbies: "pickup basketball, gym, cooking nights",
-      music: "Hip-hop and house",
-      sports: "Very active",
-      gaming: "Some weekends",
-      cooking: "Likes shared dinners",
-      socialLevel: "Social",
-      mustHaves: "Good kitchen, short commute, respectful communication",
-      dealbreakers: "Passive-aggressive conflict, hidden fees, no guest boundaries",
-      whoCanMessage: "Verified users",
-      profileVisibility: "Visible in nearby neighborhoods",
-      shareProfile: "Right away",
-      safetyReady: true
-    }
+    basics: 0,
+    lifestyle: 0,
+    interests: 0,
+    dealbreakers: 0,
+    privacy: 0
   }
-];
+);
 
-const buttonLabels: Record<StepId, string> = {
-  account: "Continue to verification",
-  verify: "Continue to basics",
-  basics: "Continue to lifestyle",
-  lifestyle: "Continue to interests",
-  interests: "Continue to dealbreakers",
-  dealbreakers: "Continue to safety",
-  privacy: "Review profile",
-  profile: "Create prototype profile"
-};
-
-function validateStep(stepId: StepId, form: FormState) {
-  switch (stepId) {
-    case "account":
-      if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.password.trim()) {
-        return "Complete name, email, phone, and password before continuing.";
-      }
-      if (!/\S+@\S+\.\S+/.test(form.email)) {
-        return "Use a valid email address for the prototype sign-up.";
-      }
-      if (form.password.trim().length < 8) {
-        return "Use at least 8 characters for the prototype password.";
-      }
-      if (form.phone.replace(/\D/g, "").length < 10) {
-        return "Enter a phone number with at least 10 digits.";
-      }
-      return "";
-    case "verify":
-      if (form.verificationCode.trim() !== DEMO_VERIFICATION_CODE) {
-        return `Enter the demo verification code ${DEMO_VERIFICATION_CODE} to continue.`;
-      }
-      return "";
-    case "basics":
-      if (!form.location || !form.budget || !form.moveInDate || !form.leaseLength) {
-        return "Finish the basics section before moving on.";
-      }
-      return "";
-    case "lifestyle":
-      if (!form.sleepSchedule || !form.cleanliness || !form.guests || !form.pets || !form.smoking) {
-        return "Answer each lifestyle question so the prototype has usable compatibility data.";
-      }
-      return "";
-    case "interests":
-      if (
-        !form.hobbies.trim() ||
-        !form.music ||
-        !form.sports ||
-        !form.gaming ||
-        !form.cooking ||
-        !form.socialLevel
-      ) {
-        return "Finish the interests section before moving on.";
-      }
-      return "";
-    case "dealbreakers":
-      if (!form.mustHaves.trim() || !form.dealbreakers.trim()) {
-        return "Add at least one must-have and one dealbreaker.";
-      }
-      return "";
-    case "privacy":
-      if (!form.whoCanMessage || !form.profileVisibility || !form.shareProfile || !form.safetyReady) {
-        return "Confirm the privacy settings and acknowledge the safety tools.";
-      }
-      return "";
-    case "profile":
-      return "";
-    default:
-      return "";
-  }
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
-function calculateMatchScore(user: FakeUser, form: FormState) {
-  let score = 72;
-
-  if (form.budget && user.budget === form.budget) {
-    score += 10;
+function validateAccount(account: AccountState) {
+  if (!account.fullName.trim() || !account.email.trim() || !account.phone.trim() || !account.password.trim()) {
+    return "Complete name, email, phone, and password before moving on.";
   }
 
-  if (/early riser/i.test(user.vibe) && form.sleepSchedule === "Early riser") {
-    score += 8;
+  if (!/\S+@\S+\.\S+/.test(account.email)) {
+    return "Use a valid email address for the prototype sign-up.";
   }
 
-  if (/night owl/i.test(user.vibe) && form.sleepSchedule === "Night owl") {
-    score += 8;
+  if (account.phone.replace(/\D/g, "").length < 10) {
+    return "Enter a phone number with at least 10 digits.";
   }
 
-  if (/tidy|organized/i.test(user.vibe) && form.cleanliness === "Very tidy") {
-    score += 6;
+  if (account.password.trim().length < 8) {
+    return "Use at least 8 characters for the prototype password.";
   }
 
-  if (/social|cooking/i.test(user.vibe) && (form.socialLevel === "Social" || form.socialLevel === "Balanced")) {
-    score += 6;
+  return "";
+}
+
+function getCategoryAverage(categoryId: CategoryId, answers: QuizAnswers) {
+  const answeredScores = questionBank
+    .filter((question) => question.category === categoryId)
+    .map((question) => answers[question.id])
+    .filter((score): score is number => typeof score === "number");
+
+  if (!answeredScores.length) {
+    return 0;
   }
 
-  return Math.min(score, 97);
+  const total = answeredScores.reduce((sum, score) => sum + score, 0);
+  return Number((total / answeredScores.length).toFixed(1));
+}
+
+function describeCategoryScore(score: number) {
+  if (score >= 4.5) {
+    return "Very strong";
+  }
+
+  if (score >= 3.8) {
+    return "Strong";
+  }
+
+  if (score >= 3) {
+    return "Balanced";
+  }
+
+  if (score >= 2.2) {
+    return "Light";
+  }
+
+  return "Low";
+}
+
+function describeMatchScore(score: number) {
+  if (score >= 92) {
+    return "Very close fit";
+  }
+
+  if (score >= 84) {
+    return "Strong fit";
+  }
+
+  if (score >= 76) {
+    return "Good fit";
+  }
+
+  return "Possible fit";
+}
+
+function matchReasons(userScores: MatchTarget, targetScores: MatchTarget) {
+  return categoryMeta
+    .map((category) => ({
+      title: category.title,
+      diff: Math.abs(userScores[category.id] - targetScores[category.id])
+    }))
+    .sort((a, b) => a.diff - b.diff)
+    .slice(0, 2)
+    .map((item) => item.title)
+    .join(" + ");
 }
 
 function App() {
-  const [form, setForm] = useState<FormState>(initialFormState);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [screen, setScreen] = useState<ScreenId>("account");
+  const [account, setAccount] = useState<AccountState>(initialAccountState);
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({});
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [status, setStatus] = useState<StatusState>({ kind: "idle", message: "" });
-  const [profileCreated, setProfileCreated] = useState(false);
 
-  const currentStep = steps[currentStepIndex];
-  const progressPercent = ((currentStepIndex + 1) / steps.length) * 100;
+  const screenIndex = screenOrder.indexOf(screen);
+  const totalQuestions = questionBank.length;
+  const answeredCount = Object.keys(quizAnswers).length;
+  const quizProgress = (answeredCount / totalQuestions) * 100;
+  const currentQuestion = questionBank[questionIndex];
+  const nextQuestion = questionBank[questionIndex + 1] ?? null;
+  const currentCategory = categoryMeta.find((category) => category.id === currentQuestion.category) ?? categoryMeta[0];
+  const currentCategoryQuestions = questionBank.filter((question) => question.category === currentQuestion.category);
+  const currentCategoryQuestionNumber =
+    currentCategoryQuestions.findIndex((question) => question.id === currentQuestion.id) + 1;
 
-  const summarySections = useMemo(
-    () => [
-      {
-        title: "Account",
-        items: [form.fullName, form.email, form.phone]
-      },
-      {
-        title: "Basics",
-        items: [form.location, form.budget, form.moveInDate, form.leaseLength]
-      },
-      {
-        title: "Lifestyle",
-        items: [form.sleepSchedule, form.cleanliness, form.guests, form.pets, form.smoking]
-      },
-      {
-        title: "Interests",
-        items: [form.hobbies, form.music, form.sports, form.gaming, form.cooking, form.socialLevel]
-      },
-      {
-        title: "Safety",
-        items: [form.mustHaves, form.dealbreakers, form.whoCanMessage, form.profileVisibility, form.shareProfile]
-      }
-    ],
-    [form]
+  const userCategoryScores = useMemo(
+    () =>
+      categoryMeta.reduce(
+        (scores, category) => {
+          scores[category.id] = getCategoryAverage(category.id, quizAnswers);
+          return scores;
+        },
+        {
+          basics: 0,
+          lifestyle: 0,
+          interests: 0,
+          dealbreakers: 0,
+          privacy: 0
+        } as MatchTarget
+      ),
+    [quizAnswers]
+  );
+
+  const summaryCards = useMemo(
+    () =>
+      categoryMeta
+        .map((category) => ({
+          ...category,
+          score: userCategoryScores[category.id]
+        }))
+        .sort((a, b) => b.score - a.score),
+    [userCategoryScores]
   );
 
   const starterMatches = useMemo(
     () =>
       fakeUsers
-        .map((user) => ({
-          ...user,
-          score: calculateMatchScore(user, form)
-        }))
+        .map((user) => {
+          const target = matchTargets[user.id];
+          const meanDifference =
+            categoryMeta.reduce((sum, category) => {
+              return sum + Math.abs(userCategoryScores[category.id] - target[category.id]);
+            }, 0) / categoryMeta.length;
+
+          const score = clamp(Math.round(97 - meanDifference * 18), 68, 97);
+
+          return {
+            ...user,
+            score,
+            alignedOn: matchReasons(userCategoryScores, target)
+          };
+        })
         .sort((a, b) => b.score - a.score),
-    [form]
+    [userCategoryScores]
   );
 
-  const updateField = <K extends keyof FormState,>(field: K, value: FormState[K]) => {
-    setForm((current) => ({ ...current, [field]: value }));
-
+  const clearStatus = () => {
     if (status.kind !== "idle") {
       setStatus({ kind: "idle", message: "" });
     }
-
-    if (profileCreated) {
-      setProfileCreated(false);
-    }
   };
 
-  const useSampleDraft = (draft: Partial<FormState>) => {
-    setForm((current) => ({ ...current, ...draft }));
-    setStatus({ kind: "idle", message: "" });
-    setProfileCreated(false);
+  const updateAccountField = <K extends keyof AccountState,>(field: K, value: AccountState[K]) => {
+    setAccount((current) => ({ ...current, [field]: value }));
+    clearStatus();
   };
 
-  const goBack = () => {
-    setStatus({ kind: "idle", message: "" });
-    setProfileCreated(false);
-    setCurrentStepIndex((index) => Math.max(index - 1, 0));
+  const useStarterAccount = (
+    values: Pick<AccountState, "fullName" | "email" | "phone" | "password">
+  ) => {
+    setAccount((current) => ({ ...current, ...values }));
+    clearStatus();
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleAccountSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const validationMessage = validateStep(currentStep.id, form);
+    const validationMessage = validateAccount(account);
 
     if (validationMessage) {
       setStatus({ kind: "error", message: validationMessage });
-      setProfileCreated(false);
       return;
     }
 
-    if (currentStep.id === "profile") {
-      setProfileCreated(true);
+    setScreen("verify");
+    setStatus({ kind: "idle", message: "" });
+  };
+
+  const handleVerifySubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (account.verificationCode.trim() !== DEMO_VERIFICATION_CODE) {
       setStatus({
-        kind: "success",
-        message: "Profile created locally. The next prototype steps can now use this data for matching, chat, and scheduling."
+        kind: "error",
+        message: `Enter the demo verification code ${DEMO_VERIFICATION_CODE} to continue.`
       });
       return;
     }
 
+    setScreen("quiz");
     setStatus({ kind: "idle", message: "" });
-    setCurrentStepIndex((index) => Math.min(index + 1, steps.length - 1));
   };
 
-  const renderStepFields = () => {
-    switch (currentStep.id) {
-      case "account":
-        return (
-          <>
-            <div className="callout">
-              <p className="callout-title">Prototype note</p>
-              <p>
-                Everyone starts with sign-up here. There is no real authentication service behind
-                this UI yet, so the first screen should behave like account creation.
-              </p>
-            </div>
+  const handleAnswer = (value: number) => {
+    setQuizAnswers((current) => ({ ...current, [currentQuestion.id]: value }));
+    setStatus({ kind: "idle", message: "" });
 
-            <div className="sample-row">
-              {sampleDrafts.map((draft) => (
-                <button
-                  key={draft.title}
-                  type="button"
-                  className="sample-card"
-                  onClick={() => useSampleDraft(draft.values)}
-                >
-                  <strong>{draft.title}</strong>
-                  <span>{draft.description}</span>
-                </button>
-              ))}
-            </div>
+    if (questionIndex === totalQuestions - 1) {
+      setScreen("summary");
+      setStatus({
+        kind: "success",
+        message: "All 20 questions are complete. The profile draft is ready."
+      });
+      return;
+    }
 
-            <div className="input-grid">
+    setQuestionIndex((index) => index + 1);
+  };
+
+  const goBackFromQuiz = () => {
+    setStatus({ kind: "idle", message: "" });
+
+    if (questionIndex === 0) {
+      setScreen("verify");
+      return;
+    }
+
+    setQuestionIndex((index) => index - 1);
+  };
+
+  const restartPrototype = () => {
+    setScreen("account");
+    setAccount(initialAccountState);
+    setQuizAnswers({});
+    setQuestionIndex(0);
+    setStatus({ kind: "idle", message: "" });
+  };
+
+  const renderStatus = () =>
+    status.message ? (
+      <p className={`status-banner ${status.kind}`} role="status" aria-live="polite">
+        {status.message}
+      </p>
+    ) : null;
+
+  const renderTopBar = () => (
+    <header className="topbar">
+      <div className="brand-lockup">
+        <div className="brand-mark" aria-hidden="true" />
+        <div>
+          <p className="brand-title">Roommate Match</p>
+          <p className="brand-subtitle">Frontend-only onboarding prototype</p>
+        </div>
+      </div>
+
+      <ol className="screen-pills" aria-label="Prototype page progress">
+        {screenOrder.map((item, index) => {
+          const state =
+            index === screenIndex ? "active" : index < screenIndex ? "done" : "upcoming";
+
+          return (
+            <li key={item} className={`screen-pill ${state}`}>
+              <span>{index + 1}</span>
+              <strong>{screenTitles[item]}</strong>
+            </li>
+          );
+        })}
+      </ol>
+    </header>
+  );
+
+  const renderAccountScreen = () => (
+    <section className="screen split-screen">
+      <div className="hero-pane hero-pane-coral">
+        <p className="eyebrow">Page 1 of 4</p>
+        <h1>Start with sign-up, not sign-in.</h1>
+        <p className="lede">
+          This prototype should feel like a real onboarding flow. Account creation is the first
+          page, then identity verification, then the question cards.
+        </p>
+
+        <div className="hero-grid">
+          <article className="hero-card">
+            <strong>Separate pages</strong>
+            <p>Each major step lives on its own screen instead of one crowded form.</p>
+          </article>
+          <article className="hero-card">
+            <strong>Fast prototype</strong>
+            <p>Everything stays local, so you can test the flow without backend work.</p>
+          </article>
+        </div>
+      </div>
+
+      <div className="panel-pane">
+        <div className="panel-shell">
+          <div className="panel-head">
+            <p className="panel-kicker">Create account</p>
+            <h2>Set up the first page</h2>
+            <p>Use a starter account or type the details manually.</p>
+          </div>
+
+          <div className="starter-row">
+            {starterAccounts.map((starter) => (
+              <button
+                key={starter.title}
+                type="button"
+                className="starter-card"
+                onClick={() => useStarterAccount(starter.values)}
+              >
+                <strong>{starter.title}</strong>
+                <span>{starter.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <form className="stack-form" onSubmit={handleAccountSubmit} noValidate>
+            <div className="field-grid">
               <label>
                 Full name
                 <input
                   type="text"
                   placeholder="Avery Johnson"
-                  value={form.fullName}
-                  onChange={(event) => updateField("fullName", event.target.value)}
+                  value={account.fullName}
+                  onChange={(event) => updateAccountField("fullName", event.target.value)}
                 />
               </label>
 
@@ -438,8 +620,8 @@ function App() {
                 <input
                   type="email"
                   placeholder="name@campus.edu"
-                  value={form.email}
-                  onChange={(event) => updateField("email", event.target.value)}
+                  value={account.email}
+                  onChange={(event) => updateAccountField("email", event.target.value)}
                 />
               </label>
 
@@ -448,8 +630,8 @@ function App() {
                 <input
                   type="tel"
                   placeholder="(555) 010-1234"
-                  value={form.phone}
-                  onChange={(event) => updateField("phone", event.target.value)}
+                  value={account.phone}
+                  onChange={(event) => updateAccountField("phone", event.target.value)}
                 />
               </label>
 
@@ -458,473 +640,355 @@ function App() {
                 <input
                   type="password"
                   placeholder="Use 8+ characters"
-                  value={form.password}
-                  onChange={(event) => updateField("password", event.target.value)}
-                />
-              </label>
-            </div>
-          </>
-        );
-
-      case "verify":
-        return (
-          <>
-            <div className="verification-banner">
-              <div>
-                <p className="callout-title">Demo verification code</p>
-                <p>Use <strong>{DEMO_VERIFICATION_CODE}</strong> to simulate the OTP check.</p>
-              </div>
-              <span className="badge">Frontend only</span>
-            </div>
-
-            <div className="choice-grid">
-              <button
-                type="button"
-                className={form.verificationMethod === "email" ? "choice-card active" : "choice-card"}
-                onClick={() => updateField("verificationMethod", "email")}
-              >
-                <strong>Email verification</strong>
-                <span>Send the code to {form.email || "your inbox"}.</span>
-              </button>
-
-              <button
-                type="button"
-                className={form.verificationMethod === "phone" ? "choice-card active" : "choice-card"}
-                onClick={() => updateField("verificationMethod", "phone")}
-              >
-                <strong>Phone verification</strong>
-                <span>Send the code to {form.phone || "your phone"}.</span>
-              </button>
-            </div>
-
-            <div className="input-grid">
-              <label>
-                Verification code
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Enter 6 digits"
-                  value={form.verificationCode}
-                  onChange={(event) => updateField("verificationCode", event.target.value)}
+                  value={account.password}
+                  onChange={(event) => updateAccountField("password", event.target.value)}
                 />
               </label>
             </div>
 
-            <label className="checkbox-card">
-              <input
-                type="checkbox"
-                checked={form.optionalIdCheck}
-                onChange={(event) => updateField("optionalIdCheck", event.target.checked)}
-              />
-              <span>
-                Include the optional ID check in the prototype
-                <small>Useful for the trust and safety path, but not required to continue.</small>
-              </span>
-            </label>
-          </>
-        );
+            {renderStatus()}
 
-      case "basics":
-        return (
-          <div className="input-grid">
-            <label>
-              Preferred location
-              <input
-                type="text"
-                placeholder="Boston, MA"
-                value={form.location}
-                onChange={(event) => updateField("location", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Budget range
-              <select value={form.budget} onChange={(event) => updateField("budget", event.target.value)}>
-                <option value="">Select budget</option>
-                <option value="$800-$1,000">$800-$1,000</option>
-                <option value="$900-$1,100">$900-$1,100</option>
-                <option value="$1,000-$1,250">$1,000-$1,250</option>
-                <option value="$1,250-$1,500">$1,250-$1,500</option>
-              </select>
-            </label>
-
-            <label>
-              Move-in date
-              <input
-                type="date"
-                value={form.moveInDate}
-                onChange={(event) => updateField("moveInDate", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Lease length
-              <select
-                value={form.leaseLength}
-                onChange={(event) => updateField("leaseLength", event.target.value)}
-              >
-                <option value="">Select lease</option>
-                <option value="6 months">6 months</option>
-                <option value="9 months">9 months</option>
-                <option value="12 months">12 months</option>
-                <option value="Flexible">Flexible</option>
-              </select>
-            </label>
-          </div>
-        );
-
-      case "lifestyle":
-        return (
-          <div className="input-grid">
-            <label>
-              Sleep schedule
-              <select
-                value={form.sleepSchedule}
-                onChange={(event) => updateField("sleepSchedule", event.target.value)}
-              >
-                <option value="">Select sleep schedule</option>
-                <option value="Early riser">Early riser</option>
-                <option value="Night owl">Night owl</option>
-                <option value="Flexible">Flexible</option>
-              </select>
-            </label>
-
-            <label>
-              Cleanliness
-              <select
-                value={form.cleanliness}
-                onChange={(event) => updateField("cleanliness", event.target.value)}
-              >
-                <option value="">Select cleanliness</option>
-                <option value="Very tidy">Very tidy</option>
-                <option value="Moderately tidy">Moderately tidy</option>
-                <option value="Relaxed">Relaxed</option>
-              </select>
-            </label>
-
-            <label>
-              Guests
-              <select value={form.guests} onChange={(event) => updateField("guests", event.target.value)}>
-                <option value="">Select guest preference</option>
-                <option value="Rarely">Rarely</option>
-                <option value="Occasionally">Occasionally</option>
-                <option value="Weekly">Weekly</option>
-              </select>
-            </label>
-
-            <label>
-              Pets
-              <select value={form.pets} onChange={(event) => updateField("pets", event.target.value)}>
-                <option value="">Select pet preference</option>
-                <option value="No pets">No pets</option>
-                <option value="Pet friendly">Pet friendly</option>
-                <option value="Have a pet already">Have a pet already</option>
-              </select>
-            </label>
-
-            <label>
-              Smoking
-              <select value={form.smoking} onChange={(event) => updateField("smoking", event.target.value)}>
-                <option value="">Select smoking preference</option>
-                <option value="No">No</option>
-                <option value="Outside only">Outside only</option>
-                <option value="Okay with it">Okay with it</option>
-              </select>
-            </label>
-          </div>
-        );
-
-      case "interests":
-        return (
-          <div className="input-grid">
-            <label className="wide-field">
-              Hobbies
-              <input
-                type="text"
-                placeholder="gaming, climbing, cooking, movie nights"
-                value={form.hobbies}
-                onChange={(event) => updateField("hobbies", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Music
-              <input
-                type="text"
-                placeholder="Lo-fi, pop, indie"
-                value={form.music}
-                onChange={(event) => updateField("music", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Sports
-              <input
-                type="text"
-                placeholder="Casual, active, none"
-                value={form.sports}
-                onChange={(event) => updateField("sports", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Gaming
-              <input
-                type="text"
-                placeholder="PC co-op, console, rarely"
-                value={form.gaming}
-                onChange={(event) => updateField("gaming", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Cooking
-              <input
-                type="text"
-                placeholder="Meal prep, shared dinners, takeout"
-                value={form.cooking}
-                onChange={(event) => updateField("cooking", event.target.value)}
-              />
-            </label>
-
-            <label>
-              Social level
-              <select
-                value={form.socialLevel}
-                onChange={(event) => updateField("socialLevel", event.target.value)}
-              >
-                <option value="">Select social level</option>
-                <option value="Quiet">Quiet</option>
-                <option value="Balanced">Balanced</option>
-                <option value="Social">Social</option>
-              </select>
-            </label>
-          </div>
-        );
-
-      case "dealbreakers":
-        return (
-          <div className="input-grid">
-            <label className="wide-field">
-              Must-haves
-              <textarea
-                rows={4}
-                placeholder="Budget cap, commute range, chores plan, pet policy"
-                value={form.mustHaves}
-                onChange={(event) => updateField("mustHaves", event.target.value)}
-              />
-            </label>
-
-            <label className="wide-field">
-              Dealbreakers
-              <textarea
-                rows={4}
-                placeholder="Smoking, late rent, loud weeknights, surprise guests"
-                value={form.dealbreakers}
-                onChange={(event) => updateField("dealbreakers", event.target.value)}
-              />
-            </label>
-          </div>
-        );
-
-      case "privacy":
-        return (
-          <>
-            <div className="input-grid">
-              <label>
-                Who can message you
-                <select
-                  value={form.whoCanMessage}
-                  onChange={(event) => updateField("whoCanMessage", event.target.value)}
-                >
-                  <option value="">Select audience</option>
-                  <option value="Matches only">Matches only</option>
-                  <option value="Verified users">Verified users</option>
-                  <option value="Anyone in range">Anyone in range</option>
-                </select>
-              </label>
-
-              <label>
-                Profile visibility
-                <select
-                  value={form.profileVisibility}
-                  onChange={(event) => updateField("profileVisibility", event.target.value)}
-                >
-                  <option value="">Select visibility</option>
-                  <option value="Visible in my city">Visible in my city</option>
-                  <option value="Visible in nearby neighborhoods">
-                    Visible in nearby neighborhoods
-                  </option>
-                  <option value="Visible only to suggested matches">
-                    Visible only to suggested matches
-                  </option>
-                </select>
-              </label>
-
-              <label className="wide-field">
-                When to share your full profile
-                <select
-                  value={form.shareProfile}
-                  onChange={(event) => updateField("shareProfile", event.target.value)}
-                >
-                  <option value="">Select sharing timing</option>
-                  <option value="Right away">Right away</option>
-                  <option value="After mutual interest">After mutual interest</option>
-                  <option value="After chat starts">After chat starts</option>
-                </select>
-              </label>
-            </div>
-
-            <label className="checkbox-card">
-              <input
-                type="checkbox"
-                checked={form.safetyReady}
-                onChange={(event) => updateField("safetyReady", event.target.checked)}
-              />
-              <span>
-                I understand the profile should include block/report controls later in the flow
-                <small>This mirrors the privacy and safety node from the FigJam board.</small>
-              </span>
-            </label>
-          </>
-        );
-
-      case "profile":
-        return (
-          <>
-            <div className="summary-grid">
-              {summarySections.map((section) => (
-                <article key={section.title} className="summary-card">
-                  <h3>{section.title}</h3>
-                  <ul>
-                    {section.items
-                      .filter((item) => item)
-                      .map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-
-            <section className="matches-panel" aria-label="Prototype starter matches">
-              <div className="panel-head">
-                <div>
-                  <p className="callout-title">Next screen preview</p>
-                  <h3>Suggested roommates unlocked by this profile</h3>
-                </div>
-                <span className="badge">Sample data</span>
-              </div>
-
-              <div className="match-grid">
-                {starterMatches.map((match) => (
-                  <article key={match.id} className="match-card">
-                    <div className="match-score">{match.score}% fit</div>
-                    <h4>{match.name}</h4>
-                    <p className="match-meta">
-                      {match.major} - {match.budget}
-                    </p>
-                    <p>{match.vibe}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="app">
-      <div className="shape shape-a" aria-hidden="true" />
-      <div className="shape shape-b" aria-hidden="true" />
-
-      <main className="wizard-shell">
-        <section className="brand-panel">
-          <p className="eyebrow">Roommate Match Prototype</p>
-          <h1>Account creation now leads directly into verification and onboarding.</h1>
-          <p className="subtitle">
-            The frontend should follow the core user flow from the board, not pretend sign-in works
-            before there is a real backend.
-          </p>
-
-          <div className="progress-panel">
-            <div className="panel-head">
-              <div>
-                <p className="callout-title">Current progress</p>
-                <h2>{currentStep.title}</h2>
-              </div>
-              <span className="badge">{Math.round(progressPercent)}%</span>
-            </div>
-            <div className="progress-track" aria-hidden="true">
-              <span style={{ width: `${progressPercent}%` }} />
-            </div>
-          </div>
-
-          <ol className="step-list">
-            {steps.map((step, index) => {
-              const state =
-                index === currentStepIndex ? "active" : index < currentStepIndex ? "done" : "upcoming";
-
-              return (
-                <li key={step.id} className={`step-item ${state}`}>
-                  <span>{index + 1}</span>
-                  <div>
-                    <strong>{step.title}</strong>
-                    <p>{step.description}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-
-        <section className="form-panel">
-          <header className="form-head">
-            <p className="eyebrow">{currentStep.kicker}</p>
-            <h2>{currentStep.title}</h2>
-            <p>{currentStep.description}</p>
-          </header>
-
-          <form className="wizard-form" onSubmit={handleSubmit} noValidate>
-            {renderStepFields()}
-
-            {status.message ? (
-              <p className={`message ${status.kind}`} role="status" aria-live="polite">
-                {status.message}
-              </p>
-            ) : null}
-
-            {profileCreated ? (
-              <section className="session-card" aria-label="Profile created status">
-                <h3>Prototype profile ready</h3>
-                <p>{form.fullName} can now continue into browsing, suggested matches, and chat.</p>
-                <p>
-                  Verification method: {form.verificationMethod}{" "}
-                  {form.optionalIdCheck ? "with optional ID check enabled" : "without ID check"}
-                </p>
-              </section>
-            ) : null}
-
-            <div className="action-row">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={goBack}
-                disabled={currentStepIndex === 0}
-              >
-                Back
-              </button>
-
+            <div className="button-row">
+              <p className="inline-note">No login page here. The prototype always starts at sign-up.</p>
               <button className="primary-button" type="submit">
-                {buttonLabels[currentStep.id]}
+                Continue to verification
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderVerifyScreen = () => (
+    <section className="screen split-screen">
+      <div className="hero-pane hero-pane-blue">
+        <p className="eyebrow">Page 2 of 4</p>
+        <h1>Verification gets its own page too.</h1>
+        <p className="lede">
+          Keep the trust signal simple: pick email or phone, enter the demo code, then continue
+          into the question flow.
+        </p>
+
+        <div className="verify-note">
+          <p className="note-title">Demo code</p>
+          <p>{DEMO_VERIFICATION_CODE}</p>
+        </div>
+      </div>
+
+      <div className="panel-pane">
+        <div className="panel-shell">
+          <div className="panel-head">
+            <p className="panel-kicker">Verify identity</p>
+            <h2>Confirm the account</h2>
+            <p>Choose how the one-time code is delivered and whether the prototype includes ID check.</p>
+          </div>
+
+          <form className="stack-form" onSubmit={handleVerifySubmit} noValidate>
+            <div className="choice-row">
+              <button
+                type="button"
+                className={account.verificationMethod === "email" ? "choice-card active" : "choice-card"}
+                onClick={() => updateAccountField("verificationMethod", "email")}
+              >
+                <strong>Email code</strong>
+                <span>{account.email || "Send to email"}</span>
+              </button>
+
+              <button
+                type="button"
+                className={account.verificationMethod === "phone" ? "choice-card active" : "choice-card"}
+                onClick={() => updateAccountField("verificationMethod", "phone")}
+              >
+                <strong>Phone code</strong>
+                <span>{account.phone || "Send to phone"}</span>
+              </button>
+            </div>
+
+            <label className="full-width">
+              Verification code
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Enter 6 digits"
+                value={account.verificationCode}
+                onChange={(event) => updateAccountField("verificationCode", event.target.value)}
+              />
+            </label>
+
+            <div className="toggle-group">
+              <button
+                type="button"
+                className={account.idCheckChoice === "skip" ? "toggle-button active" : "toggle-button"}
+                onClick={() => updateAccountField("idCheckChoice", "skip")}
+              >
+                Skip ID check
+              </button>
+              <button
+                type="button"
+                className={account.idCheckChoice === "include" ? "toggle-button active" : "toggle-button"}
+                onClick={() => updateAccountField("idCheckChoice", "include")}
+              >
+                Include ID check
+              </button>
+            </div>
+
+            {renderStatus()}
+
+            <div className="button-row">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  setScreen("account");
+                  setStatus({ kind: "idle", message: "" });
+                }}
+              >
+                Back
+              </button>
+              <button className="primary-button" type="submit">
+                Start questionnaire
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderQuizScreen = () => (
+    <section className="screen quiz-screen">
+      <aside className="quiz-rail">
+        <p className="eyebrow">Page 3 of 4</p>
+        <h1>Answer one card at a time.</h1>
+        <p className="lede">
+          There are 20 questions across 5 categories. Tap a level from 1 to 5 and the next card
+          replaces the current one.
+        </p>
+
+        <div className="progress-card">
+          <div className="progress-copy">
+            <strong>{answeredCount} / 20 answered</strong>
+            <span>{Math.round(quizProgress)}% complete</span>
+          </div>
+          <div className="progress-track" aria-hidden="true">
+            <span style={{ width: `${quizProgress}%` }} />
+          </div>
+        </div>
+
+        <ul className="category-list">
+          {categoryMeta.map((category) => {
+            const categoryQuestionsAnswered = questionBank.filter(
+              (question) => question.category === category.id && typeof quizAnswers[question.id] === "number"
+            ).length;
+            const state =
+              category.id === currentQuestion.category
+                ? "active"
+                : categoryQuestionsAnswered === categoryQuestionCounts[category.id]
+                  ? "done"
+                  : "upcoming";
+
+            return (
+              <li key={category.id} className={`category-item ${state} tone-${category.accent}`}>
+                <div>
+                  <strong>{category.title}</strong>
+                  <p>{category.summary}</p>
+                </div>
+                <span>
+                  {categoryQuestionsAnswered}/{categoryQuestionCounts[category.id]}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="scale-note">
+          <span>1 = Not me</span>
+          <span>5 = Exactly me</span>
+        </div>
+      </aside>
+
+      <div className="quiz-stage">
+        <div className="quiz-meta">
+          <div>
+            <p className="panel-kicker">Question {questionIndex + 1} of {totalQuestions}</p>
+            <h2>{currentCategory.title}</h2>
+          </div>
+          <span className={`category-badge tone-${currentCategory.accent}`}>
+            {currentCategoryQuestionNumber}/{currentCategoryQuestions.length}
+          </span>
+        </div>
+
+        <div className="question-stack">
+          {nextQuestion ? (
+            <article className="question-card question-card-ghost" aria-hidden="true">
+              <p className="question-overline">Up next</p>
+              <h3>{nextQuestion.prompt}</h3>
+            </article>
+          ) : null}
+
+          <article key={currentQuestion.id} className={`question-card question-card-active tone-${currentCategory.accent}`}>
+            <p className="question-overline">{currentCategory.summary}</p>
+            <h3>{currentQuestion.prompt}</h3>
+            <p className="question-hint">{currentQuestion.hint}</p>
+
+            <div className="rating-grid" role="group" aria-label={`Choose a level for: ${currentQuestion.prompt}`}>
+              {scaleChoices.map((choice) => (
+                <button
+                  key={choice.value}
+                  type="button"
+                  className={
+                    quizAnswers[currentQuestion.id] === choice.value
+                      ? "rating-choice selected"
+                      : "rating-choice"
+                  }
+                  onClick={() => handleAnswer(choice.value)}
+                >
+                  <strong>{choice.value}</strong>
+                  <span>{choice.label}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+        </div>
+
+        <div className="button-row quiz-actions">
+          <button type="button" className="secondary-button" onClick={goBackFromQuiz}>
+            Back
+          </button>
+          <p className="inline-note">Tap any choice and the next question slides in.</p>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderSummaryScreen = () => (
+    <section className="screen summary-screen">
+      <div className="summary-hero">
+        <p className="eyebrow">Page 4 of 4</p>
+        <h1>{account.fullName}'s profile draft is ready.</h1>
+        <p className="lede">
+          The questionnaire is complete. These scores are based on 20 answers across the 5 question
+          types from the onboarding flow.
+        </p>
+
+        <div className="summary-tags">
+          <span>{answeredCount} answers</span>
+          <span>{account.verificationMethod} verified</span>
+          <span>{account.idCheckChoice === "include" ? "ID check included" : "ID check skipped"}</span>
+        </div>
+
+        {renderStatus()}
+      </div>
+
+      <div className="summary-grid">
+        <section className="summary-panel">
+          <div className="panel-headline">
+            <p className="panel-kicker">Category scores</p>
+            <h2>Roommate profile signals</h2>
+          </div>
+
+          <div className="signal-grid">
+            {summaryCards.map((category) => (
+              <article key={category.id} className={`signal-card tone-${category.accent}`}>
+                <div className="signal-top">
+                  <strong>{category.title}</strong>
+                  <span>{category.score.toFixed(1)}/5</span>
+                </div>
+                <p>{describeCategoryScore(category.score)}</p>
+                <div className="mini-track" aria-hidden="true">
+                  <span style={{ width: `${(category.score / 5) * 100}%` }} />
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
+
+        <section className="summary-panel">
+          <div className="panel-headline">
+            <p className="panel-kicker">Account snapshot</p>
+            <h2>What this profile carries forward</h2>
+          </div>
+
+          <div className="detail-list">
+            <article className="detail-card">
+              <strong>Name</strong>
+              <span>{account.fullName}</span>
+            </article>
+            <article className="detail-card">
+              <strong>Email</strong>
+              <span>{account.email}</span>
+            </article>
+            <article className="detail-card">
+              <strong>Phone</strong>
+              <span>{account.phone}</span>
+            </article>
+            <article className="detail-card">
+              <strong>Strongest categories</strong>
+              <span>{summaryCards.slice(0, 2).map((category) => category.title).join(" + ")}</span>
+            </article>
+          </div>
+        </section>
+
+        <section className="summary-panel match-panel">
+          <div className="panel-headline">
+            <p className="panel-kicker">Sample matches</p>
+            <h2>Who this profile aligns with</h2>
+          </div>
+
+          <div className="match-list">
+            {starterMatches.map((match) => (
+              <article key={match.id} className="match-card">
+                <div className="match-score">
+                  <strong>{match.score}%</strong>
+                  <span>{describeMatchScore(match.score)}</span>
+                </div>
+                <div className="match-copy">
+                  <h3>{match.name}</h3>
+                  <p className="match-meta">
+                    {match.major} - {match.budget}
+                  </p>
+                  <p>{match.vibe}</p>
+                  <p className="match-alignment">Closest on {match.alignedOn}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="button-row">
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            setScreen("quiz");
+            setQuestionIndex(totalQuestions - 1);
+            setStatus({ kind: "idle", message: "" });
+          }}
+        >
+          Back to questions
+        </button>
+        <button type="button" className="primary-button" onClick={restartPrototype}>
+          Start over
+        </button>
+      </div>
+    </section>
+  );
+
+  return (
+    <div className="app">
+      <div className="orb orb-a" aria-hidden="true" />
+      <div className="orb orb-b" aria-hidden="true" />
+      <div className="orb orb-c" aria-hidden="true" />
+
+      <main className="stage-shell">
+        {renderTopBar()}
+
+        {screen === "account" && renderAccountScreen()}
+        {screen === "verify" && renderVerifyScreen()}
+        {screen === "quiz" && renderQuizScreen()}
+        {screen === "summary" && renderSummaryScreen()}
       </main>
     </div>
   );
