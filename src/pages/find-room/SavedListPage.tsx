@@ -4,19 +4,20 @@ import { ScoredRoomMatch } from "../../types";
 
 type SavedListPageProps = {
   savedMatches: ScoredRoomMatch[];
+  likedIds: string[];
   contactedIds: string[];
   onOpenMatch: (matchId: string) => void;
   onOpenChat: (matchId: string) => void;
 };
 
-function SavedListPage({ savedMatches, contactedIds, onOpenMatch, onOpenChat }: SavedListPageProps) {
+function SavedListPage({ savedMatches, likedIds, contactedIds, onOpenMatch, onOpenChat }: SavedListPageProps) {
   return (
     <section className="screen branch-screen">
       <div className="summary-hero">
         <p className="eyebrow">Interested houses</p>
         <h1>Saved rooms and contacted matches.</h1>
         <p className="lede">
-          Tap any saved house card to open its full detail page, or jump straight into the group chat.
+          Save keeps a house here. Like unlocks the house group chat.
         </p>
       </div>
 
@@ -25,6 +26,8 @@ function SavedListPage({ savedMatches, contactedIds, onOpenMatch, onOpenChat }: 
           {savedMatches.map((match) => {
             const detail = roomDetailById[match.id];
             const coverPhoto = detail.photos[0];
+            const isLiked = likedIds.includes(match.id);
+            const isContacted = contactedIds.includes(match.id);
 
             return (
               <article
@@ -40,14 +43,14 @@ function SavedListPage({ savedMatches, contactedIds, onOpenMatch, onOpenChat }: 
                 role="button"
                 tabIndex={0}
               >
-                <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} />
+                <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} loading="lazy" />
 
                 <div className="listing-top">
                   <div>
                     <h3>{match.roomTitle}</h3>
                     <p className="listing-meta">{match.neighborhood} • {formatPrice(match.monthlyRent)} / month</p>
                   </div>
-                  <span className="tag-chip">{contactedIds.includes(match.id) ? "Intro sent" : "Saved"}</span>
+                  <span className="tag-chip">{isContacted ? "Intro sent" : isLiked ? "Liked" : "Saved"}</span>
                 </div>
 
                 <p>{detail.summary}</p>
@@ -74,12 +77,13 @@ function SavedListPage({ savedMatches, contactedIds, onOpenMatch, onOpenChat }: 
                   <button
                     type="button"
                     className="secondary-button"
+                    disabled={!isLiked}
                     onClick={(event) => {
                       event.stopPropagation();
                       onOpenChat(match.id);
                     }}
                   >
-                    Group chat
+                    {isLiked ? "Group chat" : "Like to unlock chat"}
                   </button>
                 </div>
               </article>

@@ -28,7 +28,7 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
 
             return (
               <button key={match.id} type="button" className="suggestion-card listing-card-button" onClick={() => onInspect(match.id)}>
-                <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} />
+                <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} loading="lazy" />
 
                 <div className="listing-top">
                   <div>

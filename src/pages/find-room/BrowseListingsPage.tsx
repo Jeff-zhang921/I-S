@@ -39,7 +39,7 @@ function BrowseListingsPage({ matches, onOpenFilters, onOpenSuggestions, onOpenM
 
           return (
             <button key={match.id} type="button" className="listing-card listing-card-button" onClick={() => onOpenMatch(match.id)}>
-              <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} />
+              <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} loading="lazy" />
 
               <div className="listing-top">
                 <div>

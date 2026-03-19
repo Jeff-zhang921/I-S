@@ -88,6 +88,7 @@ function App() {
   const [detailReturnScreen, setDetailReturnScreen] = useState<DetailReturnScreen>("suggestions");
   const [introBackScreen, setIntroBackScreen] = useState<IntroBackScreen>("matchFeed");
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [likedIds, setLikedIds] = useState<string[]>([]);
   const [contactedIds, setContactedIds] = useState<string[]>([]);
   const [introDrafts, setIntroDrafts] = useState<Record<string, string>>({});
   const [chatDrafts, setChatDrafts] = useState<Record<string, string>>({});
@@ -177,10 +178,12 @@ function App() {
     ? allScoredMatches.find((match) => match.id === selectedMatchId) ?? null
     : null;
   const savedMatches = allScoredMatches.filter((match) => savedIds.includes(match.id));
+  const chatEligibleIds = [...new Set([...likedIds, ...contactedIds])];
   const chatMatchPool = allScoredMatches.filter(
-    (match) => contactedIds.includes(match.id) || savedIds.includes(match.id) || match.id === selectedMatchId
+    (match) => chatEligibleIds.includes(match.id)
   );
-  const activeChatMatch = selectedMatch ?? chatMatchPool[0] ?? null;
+  const activeChatMatch =
+    selectedMatch && chatEligibleIds.includes(selectedMatch.id) ? selectedMatch : chatMatchPool[0] ?? null;
   const currentIntroDraft = selectedMatch
     ? introDrafts[selectedMatch.id] ?? buildIntroDraft(account.fullName, selectedMatch)
     : "";
@@ -247,6 +250,7 @@ function App() {
     setDetailReturnScreen("suggestions");
     setIntroBackScreen("matchFeed");
     setSavedIds([]);
+    setLikedIds([]);
     setContactedIds([]);
     setIntroDrafts({});
     setChatDrafts({});
@@ -307,6 +311,10 @@ function App() {
     setSavedIds((current) => (current.includes(matchId) ? current : [...current, matchId]));
   }
 
+  function addLikedMatch(matchId: string) {
+    setLikedIds((current) => (current.includes(matchId) ? current : [...current, matchId]));
+  }
+
   function storeDefaultIntro(match: ScoredRoomMatch) {
     setIntroDrafts((current) => {
       if (current[match.id]) {
@@ -333,6 +341,7 @@ function App() {
     }
 
     addSavedMatch(match.id);
+    addLikedMatch(match.id);
     storeDefaultIntro(match);
     setSelectedMatchId(match.id);
     setIntroBackScreen(backScreen);
@@ -346,7 +355,11 @@ function App() {
       return;
     }
 
-    addSavedMatch(match.id);
+    if (!chatEligibleIds.includes(match.id)) {
+      setStatus({ kind: "error", message: "Like this house first to unlock the group chat." });
+      return;
+    }
+
     setSelectedMatchId(match.id);
     setScreen("chatThread");
     clearStatus();
@@ -757,6 +770,7 @@ function App() {
             match={selectedMatch}
             onBack={() => setScreen(detailReturnScreen)}
             onSave={() => handleSaveMatch(selectedMatch?.id ?? null)}
+            canOpenChat={selectedMatch ? chatEligibleIds.includes(selectedMatch.id) : false}
             onOpenChat={() => selectedMatch && openGroupChat(selectedMatch.id)}
             onLike={() => selectedMatch && openIntro(selectedMatch.id, "matchDetail")}
             onOpenIntro={() => selectedMatch && openIntro(selectedMatch.id, "matchDetail")}
@@ -767,6 +781,7 @@ function App() {
         return (
           <SavedListPage
             savedMatches={savedMatches}
+            likedIds={likedIds}
             contactedIds={contactedIds}
             onOpenMatch={(matchId) => openMatchDetail(matchId, "savedList")}
             onOpenChat={openGroupChat}

@@ -15,7 +15,7 @@ function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }
           <p className="eyebrow">Chats</p>
           <h1>No active house chats yet.</h1>
           <p className="lede">
-            Save a house or send an intro first. Then the owner and current tenant group chat will appear here.
+            Like a house or send an intro first. Then the owner and current tenant group chat will appear here.
           </p>
         </div>
       </section>

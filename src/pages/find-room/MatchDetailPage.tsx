@@ -7,11 +7,12 @@ type MatchDetailPageProps = {
   onBack: () => void;
   onSave: () => void;
   onLike: () => void;
+  canOpenChat: boolean;
   onOpenIntro: () => void;
   onOpenChat: () => void;
 };
 
-function MatchDetailPage({ match, onBack, onSave, onLike, onOpenIntro, onOpenChat }: MatchDetailPageProps) {
+function MatchDetailPage({ match, onBack, onSave, onLike, canOpenChat, onOpenIntro, onOpenChat }: MatchDetailPageProps) {
   if (!match) {
     return (
       <section className="screen branch-screen">
@@ -37,10 +38,10 @@ function MatchDetailPage({ match, onBack, onSave, onLike, onOpenIntro, onOpenCha
       </div>
 
       <section className="summary-panel detail-hero-panel">
-        <img className="detail-hero-image" src={heroPhoto.src} alt={heroPhoto.alt} />
+        <img className="detail-hero-image" src={heroPhoto.src} alt={heroPhoto.alt} loading="lazy" />
         <div className="detail-gallery">
           {galleryPhotos.map((photo) => (
-            <img key={photo.alt} className="detail-gallery-image" src={photo.src} alt={photo.alt} />
+            <img key={photo.alt} className="detail-gallery-image" src={photo.src} alt={photo.alt} loading="lazy" />
           ))}
         </div>
       </section>
@@ -150,7 +151,9 @@ function MatchDetailPage({ match, onBack, onSave, onLike, onOpenIntro, onOpenCha
         <button type="button" className="secondary-button" onClick={onBack}>Back</button>
         <div className="button-row compact-actions">
           <button type="button" className="secondary-button" onClick={onSave}>Save</button>
-          <button type="button" className="secondary-button" onClick={onOpenChat}>Open group chat</button>
+          <button type="button" className="secondary-button" disabled={!canOpenChat} onClick={onOpenChat}>
+            {canOpenChat ? "Open group chat" : "Like to unlock chat"}
+          </button>
           <button type="button" className="secondary-button" onClick={onLike}>Like</button>
           <button type="button" className="primary-button" onClick={onOpenIntro}>Send intro</button>
         </div>

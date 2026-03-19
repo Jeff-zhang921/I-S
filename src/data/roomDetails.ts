@@ -1,52 +1,20 @@
 ﻿import { RoomDetail, RoomPhoto } from "../types";
 
-type Palette = {
-  start: string;
-  end: string;
-  accent: string;
-};
-
 type DetailSeed = Omit<RoomDetail, "photos"> & {
   title: string;
   neighborhood: string;
-  palette: Palette;
+  photoIds: [string, string, string];
   photoLabels: [string, string, string];
 };
 
-function createListingImage(title: string, neighborhood: string, caption: string, palette: Palette) {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="${caption} at ${title}">
-      <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="${palette.start}" />
-          <stop offset="100%" stop-color="${palette.end}" />
-        </linearGradient>
-      </defs>
-      <rect width="1200" height="800" rx="48" fill="url(#bg)"/>
-      <circle cx="952" cy="148" r="88" fill="rgba(255,255,255,0.24)"/>
-      <path d="M0 612 C176 556 264 708 444 668 C648 620 742 452 948 500 C1076 530 1146 598 1200 648 L1200 800 L0 800 Z" fill="rgba(255,255,255,0.14)"/>
-      <rect x="150" y="244" width="900" height="418" rx="36" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.34)" stroke-width="6"/>
-      <rect x="206" y="308" width="302" height="296" rx="20" fill="rgba(255,255,255,0.28)"/>
-      <rect x="544" y="308" width="454" height="124" rx="20" fill="rgba(255,255,255,0.28)"/>
-      <rect x="544" y="460" width="218" height="144" rx="20" fill="rgba(255,255,255,0.28)"/>
-      <rect x="782" y="460" width="216" height="144" rx="20" fill="rgba(255,255,255,0.28)"/>
-      <rect x="238" y="342" width="236" height="228" rx="16" fill="${palette.accent}" opacity="0.72"/>
-      <rect x="578" y="340" width="386" height="60" rx="16" fill="${palette.accent}" opacity="0.6"/>
-      <rect x="578" y="492" width="152" height="80" rx="16" fill="${palette.accent}" opacity="0.48"/>
-      <rect x="816" y="492" width="150" height="80" rx="16" fill="${palette.accent}" opacity="0.48"/>
-      <text x="206" y="126" fill="white" font-size="42" font-family="'Segoe UI', Arial, sans-serif" opacity="0.92">${neighborhood}</text>
-      <text x="206" y="180" fill="white" font-size="74" font-weight="700" font-family="'Segoe UI', Arial, sans-serif">${title}</text>
-      <text x="206" y="714" fill="white" font-size="36" font-family="'Segoe UI', Arial, sans-serif" opacity="0.96">${caption}</text>
-    </svg>
-  `;
-
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+function createUnsplashImage(photoId: string) {
+  return `https://unsplash.com/photos/${photoId}/download?force=true&w=1400`;
 }
 
-function buildPhotos(title: string, neighborhood: string, palette: Palette, labels: [string, string, string]): RoomPhoto[] {
-  return labels.map((label) => ({
-    src: createListingImage(title, neighborhood, label, palette),
-    alt: `${label} at ${title}`
+function buildPhotos(title: string, photoIds: [string, string, string], labels: [string, string, string]): RoomPhoto[] {
+  return labels.map((label, index) => ({
+    src: createUnsplashImage(photoIds[index]),
+    alt: `${label} for ${title}`
   }));
 }
 
@@ -54,7 +22,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-101": {
     title: "Sunny room in Clifton terrace",
     neighborhood: "Clifton",
-    palette: { start: "#6d9ac4", end: "#f0b57a", accent: "#fdf1dc" },
+    photoIds: ["lB954xOGKzI", "Bvy5ciR15oU", "z6IS0si9Pio"],
     summary: "Bright terrace room with a roof deck, fast transit access, and a calm weekday routine.",
     roomDescription: "The room gets strong morning light, has space for a desk by the window, and sits in a restored Clifton terrace with a shared kitchen-diner.",
     ownerNote: "The owner prefers renters who want a clean, low-drama house and can commit before the late summer rush.",
@@ -74,7 +42,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-102": {
     title: "Redland two-bed near Gloucester Road",
     neighborhood: "Redland",
-    palette: { start: "#7da3a3", end: "#f3d2a2", accent: "#f9f2e2" },
+    photoIds: ["f888opoBHUo", "yYVbzyokbBY", "Bvy5ciR15oU"],
     summary: "Organized Redland flat with a furnished room and practical house rules already in place.",
     roomDescription: "This flatshare is a compact two-bed with a furnished bedroom, a calm living room, and a detailed shared calendar pinned in the kitchen.",
     ownerNote: "The owner wants someone who values structure, pays on time, and is comfortable with a more orderly household.",
@@ -94,7 +62,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-103": {
     title: "Bright room with gym and parking",
     neighborhood: "Temple Meads",
-    palette: { start: "#577aa2", end: "#ccd9ed", accent: "#eef5ff" },
+    photoIds: ["4ZeTJcaspAk", "xrnNNnq6djg", "uYnHRrm63uo"],
     summary: "Amenity-heavy option with parking, gym access, and a more social flat atmosphere.",
     roomDescription: "The room sits inside a modern block near Temple Meads and includes shared access to an on-site gym, resident parking, and a brighter open-plan common area.",
     ownerNote: "The owner is fine with a more active home as long as the building quiet hours are respected.",
@@ -114,7 +82,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-104": {
     title: "Low-key room near Bishopston",
     neighborhood: "Bishopston",
-    palette: { start: "#8694a7", end: "#d9c8ba", accent: "#f5efe8" },
+    photoIds: ["zSALlLtxv6Y", "TD_iJAFo_80", "rRH2iVYtEjo"],
     summary: "Budget-conscious private room with explicit boundaries and a quieter household style.",
     roomDescription: "This is a simpler house share with a smaller common area, clear house expectations, and a practical room for someone who mostly wants a stable base.",
     ownerNote: "The owner wants a renter who values privacy, direct communication, and predictable rent payments over a social house culture.",
@@ -134,7 +102,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-105": {
     title: "Furnished room near Harbourside",
     neighborhood: "Harbourside",
-    palette: { start: "#4f88a8", end: "#e9c193", accent: "#fff1d5" },
+    photoIds: ["BxbFVcFbO1g", "yYVbzyokbBY", "vpcS07E8BFM"],
     summary: "Easy move-in furnished room with balanced social energy and strong transit access.",
     roomDescription: "The room comes furnished and sits in a flat that feels settled from day one, with enough common space for shared dinners or film nights without getting chaotic.",
     ownerNote: "The owner likes renters who communicate clearly and do not need a lot of setup help after moving in.",
@@ -154,7 +122,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-106": {
     title: "Cotham flatshare with bright study corner",
     neighborhood: "Cotham",
-    palette: { start: "#8cb2c3", end: "#f3c3a5", accent: "#fdf0e2" },
+    photoIds: ["lB954xOGKzI", "TD_iJAFo_80", "bGL5DbRzeMs"],
     summary: "Study-friendly Cotham flat with a desk-ready room and moderate social energy.",
     roomDescription: "This flatshare is set up for focused weeks: bright desk zone, practical storage, and a shared living room that is used more for quiet downtime than hosting.",
     ownerNote: "The owner wants someone who will treat the room as a long-term study base rather than a short-stay stopgap.",
@@ -174,7 +142,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-107": {
     title: "Garden-level room in Bedminster",
     neighborhood: "Bedminster",
-    palette: { start: "#77a17f", end: "#dfc69b", accent: "#f5f3df" },
+    photoIds: ["zSALlLtxv6Y", "TD_iJAFo_80", "5vPo1gc75RE"],
     summary: "Lower-rent Bedminster option with outdoor access and a practical house setup.",
     roomDescription: "The room sits on the garden level with quick access to the back patio, making it useful for someone who wants lower rent without giving up basic amenities.",
     ownerNote: "The owner prefers renters who are easy to coordinate with and happy with a straightforward house setup.",
@@ -194,7 +162,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-108": {
     title: "Quiet Stoke Bishop room near green space",
     neighborhood: "Stoke Bishop",
-    palette: { start: "#6f93a6", end: "#dce6cf", accent: "#f0f7ea" },
+    photoIds: ["4ZeTJcaspAk", "yYVbzyokbBY", "Bvy5ciR15oU"],
     summary: "Quiet, lower-cost Stoke Bishop room for early routines and strict weekday calm.",
     roomDescription: "The room is simple but bright, with a view toward green space and a house rhythm built around early mornings and quiet evenings.",
     ownerNote: "The owner is prioritizing reliability and calm living habits over social fit.",
@@ -214,7 +182,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-109": {
     title: "Southville room above a shared kitchen-diner",
     neighborhood: "Southville",
-    palette: { start: "#8a735f", end: "#e6b794", accent: "#fff0e2" },
+    photoIds: ["lB954xOGKzI", "Bvy5ciR15oU", "yYVbzyokbBY"],
     summary: "Social Southville option with shared dinners, brighter common space, and central access.",
     roomDescription: "This house leans more social than average, with the room positioned above a large shared kitchen-diner that gets used most evenings.",
     ownerNote: "The owner is happy with a friendly atmosphere but still expects the house to stay respectful and clean after hosting.",
@@ -234,7 +202,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-110": {
     title: "Montpelier warehouse-style double room",
     neighborhood: "Montpelier",
-    palette: { start: "#4e6177", end: "#d5a987", accent: "#f2e5d8" },
+    photoIds: ["BxbFVcFbO1g", "xrnNNnq6djg", "z6IS0si9Pio"],
     summary: "Creative Montpelier flat with a stronger amenities package and a more outgoing feel.",
     roomDescription: "The double room sits in a warehouse-style conversion with higher ceilings, larger shared spaces, and a roof deck used most during weekends.",
     ownerNote: "The owner wants clear conversations about noise because the flat is social but not chaotic.",
@@ -254,7 +222,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-111": {
     title: "Totterdown hilltop room with parking",
     neighborhood: "Totterdown",
-    palette: { start: "#7890b1", end: "#f0c6a1", accent: "#fff2e3" },
+    photoIds: ["4ZeTJcaspAk", "TD_iJAFo_80", "bGL5DbRzeMs"],
     summary: "Practical Totterdown room with parking, solid commute, and a well-structured house rhythm.",
     roomDescription: "This house is a strong all-rounder: stable lease, decent room size, practical parking, and enough common space without trying to be overly social.",
     ownerNote: "The owner likes renters who are organized, financially reliable, and comfortable using written house expectations.",
@@ -274,7 +242,7 @@ const detailSeeds: Record<string, DetailSeed> = {
   "rm-112": {
     title: "Redcliffe apartment room near Temple Meads",
     neighborhood: "Redcliffe",
-    palette: { start: "#5b79a6", end: "#d2d8e7", accent: "#eef3ff" },
+    photoIds: ["zSALlLtxv6Y", "yYVbzyokbBY", "WWBdqYLWho0"],
     summary: "Commute-first Redcliffe apartment with a tidy shared setup and polished common spaces.",
     roomDescription: "This apartment is ideal for someone who wants a short commute, furnished move-in, and a flatter that feels presentable rather than improvised.",
     ownerNote: "The owner is looking for a renter who values the apartment staying presentable and keeps weekday noise low.",
@@ -311,7 +279,7 @@ export const roomDetailById: Record<string, RoomDetail> = Object.fromEntries(
       houseHighlights: seed.houseHighlights,
       houseRules: seed.houseRules,
       neighborhoodNotes: seed.neighborhoodNotes,
-      photos: buildPhotos(seed.title, seed.neighborhood, seed.palette, seed.photoLabels)
+      photos: buildPhotos(seed.title, seed.photoIds, seed.photoLabels)
     }
   ])
 ) as Record<string, RoomDetail>;
