@@ -10,11 +10,11 @@ type GroupChatPageProps = {
 function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }: GroupChatPageProps) {
   if (!threadMatches.length) {
     return (
-      <section className="screen branch-screen">
-        <div className="summary-hero">
+      <section className="screen chat-screen">
+        <div className="chat-shell chat-empty-shell">
           <p className="eyebrow">Chats</p>
           <h1>No active house chats yet.</h1>
-          <p className="lede">
+          <p className="chat-subtitle">
             Like a house or send an intro first. Then the owner and current tenant group chat will appear here.
           </p>
         </div>
@@ -23,24 +23,22 @@ function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }
   }
 
   return (
-    <section className="screen branch-screen">
-      <div className="summary-hero">
-        <p className="eyebrow">Chats</p>
-        <h1>House group chats.</h1>
-        <p className="lede">
-          This page is a list of your active house conversations. Tap any chat to open the full thread.
-        </p>
-      </div>
-
-      <section className="summary-panel chat-list-shell">
-        <div className="panel-headline">
+    <section className="screen chat-screen">
+      <div className="chat-shell chat-list-shell">
+        <header className="chat-header">
           <div>
-            <p className="panel-kicker">Active chats</p>
-            <h2>{threadMatches.length} threads</h2>
+            <p className="eyebrow">Chats</p>
+            <h1>House group chats</h1>
+            <p className="chat-subtitle">Tap any thread to open the full conversation.</p>
           </div>
-        </div>
 
-        <div className="chat-thread-list">
+          <div className="chat-list-meta">
+            <strong>{threadMatches.length}</strong>
+            <span>threads</span>
+          </div>
+        </header>
+
+        <div className="chat-thread-list chat-thread-list-scroll">
           {threadMatches.map((match) => {
             const thread = getThread(match.id);
             const lastMessage = thread?.messages[thread.messages.length - 1];
@@ -65,7 +63,7 @@ function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }
             );
           })}
         </div>
-      </section>
+      </div>
     </section>
   );
 }
