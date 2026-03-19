@@ -82,18 +82,30 @@ function GroupChatThreadPage({
           </div>
 
           <div className="chat-composer chat-composer-bar">
-            <textarea
-              className="question-textarea chat-textarea"
-              rows={4}
-              value={draft}
-              onChange={(event) => onChangeDraft(event.target.value)}
-              placeholder="Type a message to the house owner and current tenant..."
-            />
-            <StatusBanner status={status} />
-            <div className="button-row">
-              <p className="inline-note">Messages are fake prototype data and stay only in frontend state.</p>
-              <button type="button" className="primary-button" onClick={onSend}>
-                Send message
+            {status.kind === "error" ? <StatusBanner status={status} /> : null}
+            <div className="chat-compose-row">
+              <input
+                type="text"
+                className="chat-input"
+                value={draft}
+                onChange={(event) => onChangeDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    onSend();
+                  }
+                }}
+                placeholder="Message the house group..."
+                aria-label="Message the house group"
+              />
+              <button
+                type="button"
+                className="chat-send-button"
+                onClick={onSend}
+                disabled={!draft.trim()}
+                aria-label="Send message"
+              >
+                Send
               </button>
             </div>
           </div>

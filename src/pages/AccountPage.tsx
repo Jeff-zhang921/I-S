@@ -13,7 +13,7 @@ type AccountPageProps = {
 
 function AccountPage({ account, starters, status, onUseStarter, onChange, onSubmit }: AccountPageProps) {
   return (
-    <section className="screen split-screen">
+    <section className="screen split-screen account-screen">
       <div className="hero-pane hero-pane-coral">
         <p className="eyebrow">Page 1 of 10</p>
         <h1>Start with sign-up, then move straight into the renter flow.</h1>

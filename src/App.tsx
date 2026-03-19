@@ -1,4 +1,4 @@
-﻿import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import BottomNav from "./components/BottomNav";
 import AccountPage from "./pages/AccountPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -93,6 +93,47 @@ function App() {
   const [introDrafts, setIntroDrafts] = useState<Record<string, string>>({});
   const [chatDrafts, setChatDrafts] = useState<Record<string, string>>({});
   const [chatMessagesByMatch, setChatMessagesByMatch] = useState<Record<string, ChatMessage[]>>({});
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const keyboardThreshold = 120;
+
+    if (!viewport) {
+      root.style.setProperty("--keyboard-offset", "0px");
+      return;
+    }
+
+    let baselineViewportBottom = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
+
+    const updateKeyboardOffset = () => {
+      const viewportBottom = Math.max(window.innerHeight, viewport.height + viewport.offsetTop);
+      const keyboardOffset = Math.max(0, baselineViewportBottom - viewportBottom);
+
+      if (keyboardOffset < keyboardThreshold) {
+        baselineViewportBottom = viewportBottom;
+        root.style.setProperty("--keyboard-offset", "0px");
+        root.classList.remove("keyboard-open");
+        return;
+      }
+
+      root.style.setProperty("--keyboard-offset", `${keyboardOffset}px`);
+      root.classList.add("keyboard-open");
+    };
+
+    updateKeyboardOffset();
+    viewport.addEventListener("resize", updateKeyboardOffset);
+    viewport.addEventListener("scroll", updateKeyboardOffset);
+    window.addEventListener("resize", updateKeyboardOffset);
+
+    return () => {
+      viewport.removeEventListener("resize", updateKeyboardOffset);
+      viewport.removeEventListener("scroll", updateKeyboardOffset);
+      window.removeEventListener("resize", updateKeyboardOffset);
+      root.style.setProperty("--keyboard-offset", "0px");
+      root.classList.remove("keyboard-open");
+    };
+  }, []);
 
   const activeQuestionBank = useMemo(
     () => questionBank.filter((question) => isQuestionVisible(question, account.privacyLevel)),
@@ -201,6 +242,7 @@ function App() {
     "chatThread",
     "profile"
   ].includes(screen);
+  const lockAppScroll = screen === "account" || screen === "quiz" || screen === "groupChat" || screen === "chatThread";
 
   const activeRenterNav = (() => {
     switch (screen) {
@@ -877,7 +919,17 @@ function App() {
 
       <div className="stage-shell">
         <div className="app-layout">
-          <div className={showRenterNav ? "app-view app-view-with-nav" : "app-view"}>{renderedScreen}</div>
+          <div
+            className={[
+              "app-view",
+              showRenterNav ? "app-view-with-nav" : "",
+              lockAppScroll ? "chat-app-view" : ""
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {renderedScreen}
+          </div>
         </div>
       </div>
 

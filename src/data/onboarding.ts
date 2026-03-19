@@ -279,7 +279,7 @@ export const initialAccountState: AccountState = {
   phone: "",
   password: "",
   verificationMethod: "email",
-  verificationCode: "",
+  verificationCode: DEMO_VERIFICATION_CODE,
   idCheckChoice: "skip",
   privacyLevel: "balanced"
 };

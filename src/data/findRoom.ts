@@ -7,6 +7,12 @@ export const defaultFilters: FiltersState = {
   amenities: []
 };
 
+export const petPolicyOptions = [
+  { value: "any", label: "Any pet setup" },
+  { value: "yes", label: "Pet-friendly" },
+  { value: "no", label: "No pets" }
+] as const;
+
 export const amenityOptions = [
   "Laundry",
   "Dishwasher",

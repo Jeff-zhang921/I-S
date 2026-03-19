@@ -91,7 +91,7 @@ export type ScaleChoice = {
 export type FiltersState = {
   maxRent: number;
   maxCommute: number;
-  petFriendly: "any" | "yes";
+  petFriendly: "any" | "yes" | "no";
   amenities: string[];
 };
 

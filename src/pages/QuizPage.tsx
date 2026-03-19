@@ -66,7 +66,7 @@ function QuizPage({
   const hiddenTextItemsCount = Math.max(textItems.length - previewTextItems.length, 0);
 
   return (
-    <section className="screen quiz-screen">
+    <section className="screen quiz-screen quiz-screen-fixed">
       <aside className="quiz-rail">
         <p className="eyebrow">Page 3 of 10</p>
         <h1>Answer one card at a time.</h1>

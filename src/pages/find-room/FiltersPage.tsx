@@ -1,4 +1,4 @@
-import { amenityOptions } from "../../data/findRoom";
+import { amenityOptions, petPolicyOptions } from "../../data/findRoom";
 import { FiltersState } from "../../types";
 
 type FiltersPageProps = {
@@ -17,7 +17,7 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
         <p className="eyebrow">Page 7 of 10</p>
         <h1>Set filters before matching.</h1>
         <p className="lede">
-          These are the practical controls from the renter branch: price, commute, pet-friendly, and amenities.
+          These are the practical controls from the renter branch: price, commute, pet policy, and property features.
         </p>
       </div>
 
@@ -65,36 +65,46 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
             </div>
           </div>
 
-          <div className="choice-row">
-            <button
-              type="button"
-              className={filters.petFriendly === "any" ? "choice-card active" : "choice-card"}
-              onClick={() => onChange("petFriendly", "any")}
-            >
-              <strong>Any pet setup</strong>
-              <span>Show all room options regardless of pet policy.</span>
-            </button>
-            <button
-              type="button"
-              className={filters.petFriendly === "yes" ? "choice-card active" : "choice-card"}
-              onClick={() => onChange("petFriendly", "yes")}
-            >
-              <strong>Pet-friendly only</strong>
-              <span>Only keep rooms where pets are welcome.</span>
-            </button>
-          </div>
+          <div className="filter-stack">
+            <div className="filter-chip-section">
+              <div className="filter-chip-copy">
+                <p className="panel-kicker">Pet policy</p>
+                <p className="inline-note">Compact options instead of a full-width pet card.</p>
+              </div>
 
-          <div className="amenity-grid">
-            {amenityOptions.map((amenity) => (
-              <button
-                key={amenity}
-                type="button"
-                className={filters.amenities.includes(amenity) ? "tag-chip active-chip" : "tag-chip"}
-                onClick={() => onToggleAmenity(amenity)}
-              >
-                {amenity}
-              </button>
-            ))}
+              <div className="amenity-grid">
+                {petPolicyOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={filters.petFriendly === option.value ? "tag-chip active-chip" : "tag-chip"}
+                    onClick={() => onChange("petFriendly", option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="filter-chip-section">
+              <div className="filter-chip-copy">
+                <p className="panel-kicker">Features</p>
+                <p className="inline-note">Tap as many property features as you want.</p>
+              </div>
+
+              <div className="amenity-grid">
+                {amenityOptions.map((amenity) => (
+                  <button
+                    key={amenity}
+                    type="button"
+                    className={filters.amenities.includes(amenity) ? "tag-chip active-chip" : "tag-chip"}
+                    onClick={() => onToggleAmenity(amenity)}
+                  >
+                    {amenity}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </article>
       </div>

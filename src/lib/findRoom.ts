@@ -37,6 +37,10 @@ export function getFilteredMatches<T extends RoommateMatch>(matches: T[], filter
       return false;
     }
 
+    if (filters.petFriendly === "no" && match.petFriendly) {
+      return false;
+    }
+
     if (filters.amenities.length && !filters.amenities.every((amenity) => match.amenities.includes(amenity as never))) {
       return false;
     }
@@ -61,6 +65,10 @@ export function scoreRoomMatch(userScores: MatchTarget, targetScores: MatchTarge
   }
 
   if (filters.petFriendly === "yes" && match.petFriendly) {
+    score += 2;
+  }
+
+  if (filters.petFriendly === "no" && !match.petFriendly) {
     score += 2;
   }
 
