@@ -14,6 +14,7 @@ import MatchDetailPage from "./pages/find-room/MatchDetailPage";
 import SavedListPage from "./pages/find-room/SavedListPage";
 import SendIntroPage from "./pages/find-room/SendIntroPage";
 import GroupChatPage from "./pages/find-room/GroupChatPage";
+import GroupChatThreadPage from "./pages/find-room/GroupChatThreadPage";
 import {
   DEMO_VERIFICATION_CODE,
   categoryMeta,
@@ -49,7 +50,7 @@ import {
 } from "./types";
 import "./styles.css";
 
-type DetailReturnScreen = "browseListings" | "suggestions" | "matchFeed" | "savedList" | "groupChat";
+type DetailReturnScreen = "browseListings" | "suggestions" | "matchFeed" | "savedList" | "chatThread";
 type IntroBackScreen = "matchFeed" | "matchDetail" | "savedList";
 type RenterNavScreen = "browseListings" | "suggestions" | "savedList" | "groupChat" | "profile";
 
@@ -180,33 +181,11 @@ function App() {
     (match) => contactedIds.includes(match.id) || savedIds.includes(match.id) || match.id === selectedMatchId
   );
   const activeChatMatch = selectedMatch ?? chatMatchPool[0] ?? null;
-  const activeChatMessages = activeChatMatch
-    ? [...(groupChatThreads[activeChatMatch.id]?.messages ?? []), ...(chatMessagesByMatch[activeChatMatch.id] ?? [])]
-    : [];
-  const activeChatThread = activeChatMatch
-    ? {
-        ...(groupChatThreads[activeChatMatch.id] ?? {
-          matchId: activeChatMatch.id,
-          title: `${activeChatMatch.neighborhood} house group`,
-          participants: [],
-          messages: []
-        }),
-        participants: [
-          {
-            id: "me",
-            name: account.fullName || "You",
-            role: "me" as const,
-            label: "You"
-          },
-          ...(groupChatThreads[activeChatMatch.id]?.participants ?? [])
-        ],
-        messages: activeChatMessages
-      }
-    : null;
   const currentIntroDraft = selectedMatch
     ? introDrafts[selectedMatch.id] ?? buildIntroDraft(account.fullName, selectedMatch)
     : "";
   const currentChatDraft = activeChatMatch ? chatDrafts[activeChatMatch.id] ?? "" : "";
+  const activeChatThread = activeChatMatch ? getChatThread(activeChatMatch.id) : null;
   const showRenterNav = [
     "browseListings",
     "filters",
@@ -216,6 +195,7 @@ function App() {
     "savedList",
     "sendIntro",
     "groupChat",
+    "chatThread",
     "profile"
   ].includes(screen);
 
@@ -237,10 +217,12 @@ function App() {
         if (detailReturnScreen === "browseListings") {
           return "browseListings";
         }
-        if (detailReturnScreen === "groupChat") {
+        if (detailReturnScreen === "chatThread") {
           return "groupChat";
         }
         return "suggestions";
+      case "chatThread":
+        return "groupChat";
       case "sendIntro":
         return introBackScreen === "savedList" ? "savedList" : "suggestions";
       default:
@@ -250,6 +232,51 @@ function App() {
 
   function clearStatus() {
     setStatus(emptyStatus);
+  }
+
+  function resetPrototype() {
+    setScreen("account");
+    setAccount(initialAccountState);
+    setQuizAnswers({});
+    setProfileNotes(initialProfileNotes);
+    setQuestionIndex(0);
+    setStatus(emptyStatus);
+    setFilters(defaultFilters);
+    setFeedIndex(0);
+    setSelectedMatchId(null);
+    setDetailReturnScreen("suggestions");
+    setIntroBackScreen("matchFeed");
+    setSavedIds([]);
+    setContactedIds([]);
+    setIntroDrafts({});
+    setChatDrafts({});
+    setChatMessagesByMatch({});
+  }
+
+  function getChatThread(matchId: string) {
+    const match = allScoredMatches.find((item) => item.id === matchId);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      ...(groupChatThreads[matchId] ?? {
+        matchId,
+        title: `${match.neighborhood} house group`,
+        participants: [],
+        messages: []
+      }),
+      participants: [
+        {
+          id: "me",
+          name: account.fullName || "You",
+          role: "me" as const,
+          label: "You"
+        },
+        ...(groupChatThreads[matchId]?.participants ?? [])
+      ],
+      messages: [...(groupChatThreads[matchId]?.messages ?? []), ...(chatMessagesByMatch[matchId] ?? [])]
+    };
   }
 
   function updateAccount<K extends keyof AccountState>(field: K, value: AccountState[K]) {
@@ -321,7 +348,7 @@ function App() {
 
     addSavedMatch(match.id);
     setSelectedMatchId(match.id);
-    setScreen("groupChat");
+    setScreen("chatThread");
     clearStatus();
   }
 
@@ -454,9 +481,6 @@ function App() {
         setScreen("savedList");
         break;
       case "groupChat":
-        if (chatMatchPool[0]) {
-          setSelectedMatchId((current) => current ?? chatMatchPool[0].id);
-        }
         setScreen("groupChat");
         break;
       case "profile":
@@ -556,7 +580,7 @@ function App() {
       setFeedIndex((current) => current + 1);
     }
 
-    setScreen("groupChat");
+    setScreen("chatThread");
     setStatus({
       kind: "success",
       message: `Intro sent to ${selectedMatch.roommate.name}. The house group chat is now open.`
@@ -778,15 +802,28 @@ function App() {
         return (
           <GroupChatPage
             threadMatches={chatMatchPool}
+            activeMatchId={activeChatMatch?.id ?? null}
+            getThread={getChatThread}
+            onOpenThread={(matchId) => {
+              setSelectedMatchId(matchId);
+              clearStatus();
+              setScreen("chatThread");
+            }}
+          />
+        );
+
+      case "chatThread":
+        return (
+          <GroupChatThreadPage
             activeMatch={activeChatMatch}
             activeThread={activeChatThread}
             draft={currentChatDraft}
             status={status}
-            onSelectThread={(matchId) => {
-              setSelectedMatchId(matchId);
+            onBack={() => {
+              setScreen("groupChat");
               clearStatus();
             }}
-            onOpenMatch={() => activeChatMatch && openMatchDetail(activeChatMatch.id, "groupChat")}
+            onOpenMatch={() => activeChatMatch && openMatchDetail(activeChatMatch.id, "chatThread")}
             onChangeDraft={(value) => {
               if (!activeChatMatch) {
                 return;
@@ -811,6 +848,7 @@ function App() {
             profileNotes={profileNotes}
             savedCount={savedMatches.length}
             contactedCount={contactedIds.length}
+            onBackToSignIn={resetPrototype}
           />
         );
     }

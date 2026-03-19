@@ -1,9 +1,12 @@
+import { useMemo, useState, type ReactNode } from "react";
 import { describeCategoryScore, parseProfileList } from "../lib/onboarding";
 import { CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
 
 type SummaryCard = CategoryMeta & {
   score: number;
 };
+
+type ProfileSectionId = "account" | "signals" | "mustHaves" | "dealbreakers";
 
 type ProfilePageProps = {
   account: {
@@ -19,7 +22,41 @@ type ProfilePageProps = {
   profileNotes: ProfileNotesState;
   savedCount: number;
   contactedCount: number;
+  onBackToSignIn: () => void;
 };
+
+type ProfilePanelProps = {
+  id: ProfileSectionId;
+  kicker: string;
+  title: string;
+  summary: string;
+  isOpen: boolean;
+  onToggle: (id: ProfileSectionId) => void;
+  children: ReactNode;
+};
+
+function ProfilePanel({ id, kicker, title, summary, isOpen, onToggle, children }: ProfilePanelProps) {
+  return (
+    <section className={`summary-panel profile-panel${isOpen ? " is-open" : ""}`}>
+      <div className="profile-panel-head">
+        <div className="panel-headline profile-panel-heading">
+          <div>
+            <p className="panel-kicker">{kicker}</p>
+            <h2>{title}</h2>
+          </div>
+
+          <button type="button" className="secondary-button panel-toggle" onClick={() => onToggle(id)}>
+            {isOpen ? "Hide details" : "View details"}
+          </button>
+        </div>
+
+        <p className="profile-panel-summary">{summary}</p>
+      </div>
+
+      {isOpen ? <div className="profile-panel-body">{children}</div> : null}
+    </section>
+  );
+}
 
 function ProfilePage({
   account,
@@ -28,16 +65,36 @@ function ProfilePage({
   summaryCards,
   profileNotes,
   savedCount,
-  contactedCount
+  contactedCount,
+  onBackToSignIn
 }: ProfilePageProps) {
+  const [expandedSection, setExpandedSection] = useState<ProfileSectionId | null>(null);
+
+  const mustHaveItems = useMemo(() => parseProfileList(profileNotes.mustHaves), [profileNotes.mustHaves]);
+  const dealbreakerItems = useMemo(
+    () => parseProfileList(profileNotes.dealbreakers),
+    [profileNotes.dealbreakers]
+  );
+  const topSignals = useMemo(
+    () =>
+      [...summaryCards]
+        .sort((left, right) => right.score - left.score)
+        .slice(0, 2)
+        .map((category) => category.title),
+    [summaryCards]
+  );
+
+  function toggleSection(id: ProfileSectionId) {
+    setExpandedSection((current) => (current === id ? null : id));
+  }
+
   return (
     <section className="screen branch-screen">
       <div className="summary-hero">
         <p className="eyebrow">Profile</p>
         <h1>Your renter profile.</h1>
         <p className="lede">
-          This follows the `view profile` step in the FigJam flow and keeps the matching signals visible
-          after onboarding.
+          Keep the overview short on mobile, then open details only when needed.
         </p>
 
         <div className="summary-tags">
@@ -47,17 +104,23 @@ function ProfilePage({
           <span>{savedCount} interested houses</span>
           <span>{contactedCount} intros sent</span>
         </div>
+
+        <div className="profile-action-row">
+          <button type="button" className="secondary-button" onClick={onBackToSignIn}>
+            Back to sign in
+          </button>
+        </div>
       </div>
 
-      <div className="summary-grid">
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">Account</p>
-              <h2>{account.fullName}</h2>
-            </div>
-          </div>
-
+      <div className="profile-accordion">
+        <ProfilePanel
+          id="account"
+          kicker="Account"
+          title={account.fullName}
+          summary={`${account.email} | ${privacyLevelMeta.title} privacy | ${savedCount} saved houses`}
+          isOpen={expandedSection === "account"}
+          onToggle={toggleSection}
+        >
           <div className="detail-list">
             <article className="detail-card">
               <strong>Email</strong>
@@ -80,16 +143,16 @@ function ProfilePage({
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
             </article>
           </div>
-        </section>
+        </ProfilePanel>
 
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">Signals</p>
-              <h2>Compatibility profile</h2>
-            </div>
-          </div>
-
+        <ProfilePanel
+          id="signals"
+          kicker="Signals"
+          title="Compatibility profile"
+          summary={`Strongest on ${topSignals.join(" and ").toLowerCase() || "matching signals"}.`}
+          isOpen={expandedSection === "signals"}
+          onToggle={toggleSection}
+        >
           <div className="signal-grid">
             {summaryCards.map((category) => (
               <article key={category.id} className={`signal-card tone-${category.accent}`}>
@@ -104,41 +167,51 @@ function ProfilePage({
               </article>
             ))}
           </div>
-        </section>
+        </ProfilePanel>
 
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">Must-haves</p>
-              <h2>What this renter is looking for</h2>
-            </div>
-          </div>
-
+        <ProfilePanel
+          id="mustHaves"
+          kicker="Must-haves"
+          title="What this renter is looking for"
+          summary={mustHaveItems.length ? mustHaveItems.slice(0, 3).join(" | ") : "No must-haves added yet."}
+          isOpen={expandedSection === "mustHaves"}
+          onToggle={toggleSection}
+        >
           <div className="tag-preview">
-            {parseProfileList(profileNotes.mustHaves).map((item) => (
-              <span key={item} className="tag-chip">
-                {item}
-              </span>
-            ))}
+            {mustHaveItems.length ? (
+              mustHaveItems.map((item) => (
+                <span key={item} className="tag-chip">
+                  {item}
+                </span>
+              ))
+            ) : (
+              <p className="inline-note">No must-haves added yet.</p>
+            )}
           </div>
-        </section>
+        </ProfilePanel>
 
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">Dealbreakers</p>
-              <h2>What should filter out fast</h2>
-            </div>
-          </div>
-
+        <ProfilePanel
+          id="dealbreakers"
+          kicker="Dealbreakers"
+          title="What should filter out fast"
+          summary={
+            dealbreakerItems.length ? dealbreakerItems.slice(0, 3).join(" | ") : "No dealbreakers added yet."
+          }
+          isOpen={expandedSection === "dealbreakers"}
+          onToggle={toggleSection}
+        >
           <div className="tag-preview">
-            {parseProfileList(profileNotes.dealbreakers).map((item) => (
-              <span key={item} className="tag-chip">
-                {item}
-              </span>
-            ))}
+            {dealbreakerItems.length ? (
+              dealbreakerItems.map((item) => (
+                <span key={item} className="tag-chip">
+                  {item}
+                </span>
+              ))
+            ) : (
+              <p className="inline-note">No dealbreakers added yet.</p>
+            )}
           </div>
-        </section>
+        </ProfilePanel>
       </div>
     </section>
   );

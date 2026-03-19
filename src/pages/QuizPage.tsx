@@ -61,6 +61,9 @@ function QuizPage({
   isQuestionAnswered
 }: QuizPageProps) {
   const currentTextValue = currentQuestion.type === "text" ? profileNotes[currentQuestion.field] : "";
+  const textItems = currentQuestion.type === "text" ? parseProfileList(currentTextValue) : [];
+  const previewTextItems = textItems.slice(0, 3);
+  const hiddenTextItemsCount = Math.max(textItems.length - previewTextItems.length, 0);
 
   return (
     <section className="screen quiz-screen">
@@ -114,6 +117,28 @@ function QuizPage({
       </aside>
 
       <div className="quiz-stage">
+        <div className="quiz-mobile-summary">
+          <div className="quiz-mobile-topline">
+            <p className="eyebrow">Page 3 of 10</p>
+            <span className={`category-badge tone-${currentCategory.accent}`}>
+              {currentCategoryQuestionNumber}/{currentCategoryQuestionsLength}
+            </span>
+          </div>
+
+          <div className="quiz-mobile-progress">
+            <strong>
+              {questionIndex + 1}/{totalQuestions}
+            </strong>
+            <span>
+              {answeredCount} answered | {privacyLevelMeta.title} privacy
+            </span>
+          </div>
+
+          <div className="progress-track" aria-hidden="true">
+            <span style={{ width: `${quizProgress}%` }} />
+          </div>
+        </div>
+
         <div className="quiz-meta">
           <div>
             <p className="panel-kicker">Question {questionIndex + 1} of {totalQuestions}</p>
@@ -164,13 +189,16 @@ function QuizPage({
                   />
                 </label>
 
-                <div className="tag-preview">
-                  {parseProfileList(currentTextValue).length ? (
-                    parseProfileList(currentTextValue).map((item) => (
-                      <span key={item} className="tag-chip">
-                        {item}
-                      </span>
-                    ))
+                <div className="tag-preview quiz-tag-preview">
+                  {textItems.length ? (
+                    <>
+                      {previewTextItems.map((item) => (
+                        <span key={item} className="tag-chip">
+                          {item}
+                        </span>
+                      ))}
+                      {hiddenTextItemsCount ? <span className="tag-chip">+{hiddenTextItemsCount} more</span> : null}
+                    </>
                   ) : (
                     <p className="inline-note">Type items separated by commas or new lines.</p>
                   )}
