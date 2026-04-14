@@ -28,6 +28,29 @@ Frontend-only prototype built with React + TypeScript.
 
 Then open the local Vite URL printed in the terminal.
 
+## Continuous deployment
+
+This repo is configured to deploy to Cloudflare using the existing [wrangler.toml](./wrangler.toml) asset setup.
+
+### GitHub Actions CD
+
+- Workflow: [.github/workflows/deploy.yml](./.github/workflows/deploy.yml)
+- Trigger: push to `main` or manual `workflow_dispatch`
+- Gate: `npm run build` and `npm run test:e2e:audit` must both pass before deploy
+- Deploy target: Cloudflare Worker `roomfinder`, serving the built `dist/` directory as an SPA
+
+### Required GitHub secrets
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+### Manual deploy
+
+```bash
+npm run build
+npm run deploy
+```
+
 ## Prototype notes
 
 - The verification page uses demo code `246810`
