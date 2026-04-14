@@ -1,3 +1,5 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { GroupChatThread, ScoredOwnerCandidate } from "../../types";
 
 type OwnerGroupChatPageProps = {
@@ -5,13 +7,24 @@ type OwnerGroupChatPageProps = {
   activeCandidateId: string | null;
   getThread: (candidateId: string) => GroupChatThread | null;
   onOpenThread: (candidateId: string) => void;
+  onBack: () => void;
+  onOpenSaved: () => void;
 };
 
-function OwnerGroupChatPage({ threadCandidates, activeCandidateId, getThread, onOpenThread }: OwnerGroupChatPageProps) {
+function OwnerGroupChatPage({
+  threadCandidates,
+  activeCandidateId,
+  getThread,
+  onOpenThread,
+  onBack,
+  onOpenSaved
+}: OwnerGroupChatPageProps) {
   if (!threadCandidates.length) {
     return (
       <section className="screen chat-screen">
         <div className="chat-shell chat-empty-shell">
+          <TopBackButton label="Back to shortlist" onClick={onBack} />
+
           <p className="eyebrow">Chats</p>
           <h1>No renter chats yet.</h1>
           <p className="chat-subtitle">Send an intro first. Once a renter is contacted, the owner-side chat thread will appear here.</p>
@@ -23,6 +36,8 @@ function OwnerGroupChatPage({ threadCandidates, activeCandidateId, getThread, on
   return (
     <section className="screen chat-screen">
       <div className="chat-shell chat-list-shell">
+        <TopBackButton label="Back to shortlist" onClick={onBack} />
+
         <header className="chat-header">
           <div>
             <p className="eyebrow">Chats</p>
@@ -35,6 +50,14 @@ function OwnerGroupChatPage({ threadCandidates, activeCandidateId, getThread, on
             <span>threads</span>
           </div>
         </header>
+
+        <ScreenFlowNav
+          eyebrow="Owner flow"
+          title="Renter chats"
+          description="Return to the shortlist or open any contacted renter thread from here."
+          showBackButton={false}
+          actions={[{ label: "Shortlist", onClick: onOpenSaved }]}
+        />
 
         <div className="chat-thread-list chat-thread-list-scroll">
           {threadCandidates.map((candidate) => {

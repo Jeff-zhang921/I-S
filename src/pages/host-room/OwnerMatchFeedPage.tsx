@@ -1,5 +1,6 @@
 import { formatOwnerRent } from "../../lib/ownerRoom";
 import { OwnerListingDraft, ScoredOwnerCandidate } from "../../types";
+import TopBackButton from "../../components/TopBackButton";
 
 type OwnerMatchFeedPageProps = {
   listing: OwnerListingDraft;
@@ -29,11 +30,10 @@ function OwnerMatchFeedPage({
   if (!currentCandidate) {
     return (
       <section className="screen branch-screen feed-screen">
+        <TopBackButton label="Back to suggestions" onClick={onBack} />
+
         <div className="empty-panel">
           <h3>No more renter matches in this feed.</h3>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back to suggestions
-          </button>
         </div>
       </section>
     );
@@ -41,10 +41,12 @@ function OwnerMatchFeedPage({
 
   return (
     <section className="screen branch-screen feed-screen">
+      <TopBackButton label="Back to suggestions" onClick={onBack} />
+
       <div className="summary-hero feed-hero">
         <p className="eyebrow">Owner feed</p>
         <h1>Review renter compatibility one profile at a time.</h1>
-        <p className="lede">Pass, save, or like each renter based on how they fit your listing and house rules.</p>
+        <p className="lede">Pass, save, or like each renter here. Open the detail screen when you want to send an intro.</p>
       </div>
 
       <div className="feed-shell">
@@ -56,22 +58,24 @@ function OwnerMatchFeedPage({
             <button type="button" className="secondary-button" onClick={onOpenSaved}>
               Open shortlist
             </button>
-            <button type="button" className="secondary-button" onClick={onBack}>
-              Back to suggestions
-            </button>
           </div>
         </aside>
 
         <article className="feed-card feed-card-docked">
           <div className="feed-card-scroll">
             <div className="owner-candidate-top">
-              <img className="candidate-avatar candidate-avatar-large" src={currentCandidate.profilePhoto} alt={currentCandidate.name} loading="lazy" />
+              <img
+                className="candidate-avatar candidate-avatar-large"
+                src={currentCandidate.profilePhoto}
+                alt={currentCandidate.name}
+                loading="lazy"
+              />
               <div className="owner-candidate-copy">
                 <div className="listing-top">
                   <div>
                     <h2>{currentCandidate.name}</h2>
                     <p className="listing-meta">
-                      {currentCandidate.age} • {currentCandidate.major}
+                      {currentCandidate.age} | {currentCandidate.major}
                     </p>
                   </div>
                   <div className="match-score-pill">{currentCandidate.score}% fit</div>
@@ -99,7 +103,7 @@ function OwnerMatchFeedPage({
               <p className="panel-kicker">Fit to your room</p>
               <h3>{listing.title}</h3>
               <p className="listing-meta">
-                {listing.neighborhood} • {formatOwnerRent(listing.monthlyRent)} / month
+                {listing.neighborhood} | {formatOwnerRent(listing.monthlyRent)} / month
               </p>
               <ul className="bullet-list">
                 {currentCandidate.whyMatch.map((reason) => (

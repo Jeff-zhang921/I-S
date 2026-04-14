@@ -21,7 +21,7 @@ function AppHeader({ items, activeId, title, subtitle }: AppHeaderProps) {
         <div className="brand-mark" aria-hidden="true" />
         <div>
           <p className="brand-title">Roommate Match</p>
-          <p className="brand-subtitle">Frontend-only prototype</p>
+          <p className="brand-subtitle">Bristol compatibility prototype</p>
         </div>
       </div>
 
@@ -35,7 +35,11 @@ function AppHeader({ items, activeId, title, subtitle }: AppHeaderProps) {
           const state = index === activeIndex ? "active" : index < activeIndex ? "done" : "upcoming";
 
           return (
-            <li key={item.id} className={`screen-pill ${state}`}>
+            <li
+              key={item.id}
+              className={`screen-pill ${state}`}
+              aria-current={state === "active" ? "step" : undefined}
+            >
               <span>{index + 1}</span>
               <strong>{item.label}</strong>
             </li>

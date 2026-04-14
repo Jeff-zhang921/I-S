@@ -1,26 +1,39 @@
-﻿import { roomDetailById } from "../../data/roomDetails";
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
+import { roomDetailById } from "../../data/roomDetails";
 import { formatMoveIn, formatPrice } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
 
 type MatchDetailPageProps = {
   match: ScoredRoomMatch | null;
+  backLabel: string;
   onBack: () => void;
   onSave: () => void;
   onLike: () => void;
   canOpenChat: boolean;
   onOpenIntro: () => void;
   onOpenChat: () => void;
+  onOpenSaved: () => void;
 };
 
-function MatchDetailPage({ match, onBack, onSave, onLike, canOpenChat, onOpenIntro, onOpenChat }: MatchDetailPageProps) {
+function MatchDetailPage({
+  match,
+  backLabel,
+  onBack,
+  onSave,
+  onLike,
+  canOpenChat,
+  onOpenIntro,
+  onOpenChat,
+  onOpenSaved
+}: MatchDetailPageProps) {
   if (!match) {
     return (
       <section className="screen branch-screen">
+        <TopBackButton label="Back" onClick={onBack} />
+
         <div className="empty-panel">
           <h3>No match selected.</h3>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back
-          </button>
         </div>
       </section>
     );
@@ -31,11 +44,24 @@ function MatchDetailPage({ match, onBack, onSave, onLike, canOpenChat, onOpenInt
 
   return (
     <section className="screen branch-screen">
+      <TopBackButton label={backLabel} onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">House details</p>
         <h1>{match.roomTitle}</h1>
         <p className="lede">Full fake listing detail with pictures, house information, roommate context, and owner notes.</p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Renter flow"
+        title="Room detail"
+        description="Review the listing, then either shortlist it, mark stronger interest, or move into contact."
+        showBackButton={false}
+        actions={[
+          { label: "Interested houses", onClick: onOpenSaved },
+          { label: canOpenChat ? "Open group chat" : "Send intro", onClick: canOpenChat ? onOpenChat : onOpenIntro, tone: "primary" }
+        ]}
+      />
 
       <section className="summary-panel detail-hero-panel">
         <img className="detail-hero-image" src={heroPhoto.src} alt={heroPhoto.alt} loading="lazy" />
@@ -148,11 +174,10 @@ function MatchDetailPage({ match, onBack, onSave, onLike, canOpenChat, onOpenInt
       </div>
 
       <div className="button-row detail-action-footer">
-        <button type="button" className="secondary-button" onClick={onBack}>Back</button>
         <div className="button-row compact-actions detail-action-group">
           <button type="button" className="secondary-button" onClick={onSave}>Save</button>
           <button type="button" className="secondary-button" disabled={!canOpenChat} onClick={onOpenChat}>
-            {canOpenChat ? "Open group chat" : "Like to unlock chat"}
+            {canOpenChat ? "Open group chat" : "Send intro to unlock chat"}
           </button>
           <button type="button" className="secondary-button" onClick={onLike}>Like</button>
           <button type="button" className="primary-button" onClick={onOpenIntro}>Send intro</button>

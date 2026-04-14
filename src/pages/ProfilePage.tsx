@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
+import ScreenFlowNav from "../components/ScreenFlowNav";
+import TopBackButton from "../components/TopBackButton";
 import { describeCategoryScore, parseProfileList } from "../lib/onboarding";
 import { CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
 
@@ -22,6 +24,8 @@ type ProfilePageProps = {
   profileNotes: ProfileNotesState;
   savedCount: number;
   contactedCount: number;
+  onBack: () => void;
+  onOpenChats: () => void;
   onBackToSignIn: () => void;
 };
 
@@ -66,6 +70,8 @@ function ProfilePage({
   profileNotes,
   savedCount,
   contactedCount,
+  onBack,
+  onOpenChats,
   onBackToSignIn
 }: ProfilePageProps) {
   const [expandedSection, setExpandedSection] = useState<ProfileSectionId | null>(null);
@@ -90,6 +96,8 @@ function ProfilePage({
 
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to interested houses" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Profile</p>
         <h1>Your renter profile.</h1>
@@ -107,10 +115,18 @@ function ProfilePage({
 
         <div className="profile-action-row">
           <button type="button" className="secondary-button" onClick={onBackToSignIn}>
-            Back to sign in
+            Sign out
           </button>
         </div>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Renter flow"
+        title="Profile overview"
+        description="Go back to your interested houses, jump into chats, or sign out from the prototype."
+        showBackButton={false}
+        actions={[{ label: "Open chats", onClick: onOpenChats, tone: "primary", disabled: contactedCount === 0 }]}
+      />
 
       <div className="profile-accordion">
         <ProfilePanel

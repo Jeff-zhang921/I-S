@@ -1,4 +1,6 @@
-﻿import { roomDetailById } from "../../data/roomDetails";
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
+import { roomDetailById } from "../../data/roomDetails";
 import { formatMoveIn, formatPrice } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
 
@@ -12,6 +14,8 @@ type SuggestionsPageProps = {
 function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: SuggestionsPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to filters" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Suggestions</p>
         <h1>Suggested rooms and roommates.</h1>
@@ -19,6 +23,14 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
           Each card now opens straight into the listing detail page with pictures and fuller house information.
         </p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Renter flow"
+        title="Match suggestions"
+        description="Return to filters, inspect a listing in depth, or move into the one-card-at-a-time match feed."
+        showBackButton={false}
+        actions={[{ label: "Open match feed", onClick: onOpenFeed, tone: "primary", disabled: !matches.length }]}
+      />
 
       {matches.length ? (
         <div className="suggestion-stack">
@@ -33,7 +45,7 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
                 <div className="listing-top">
                   <div>
                     <h3>{match.roomTitle}</h3>
-                    <p className="listing-meta">{match.neighborhood} • {formatPrice(match.monthlyRent)} / month</p>
+                    <p className="listing-meta">{match.neighborhood} | {formatPrice(match.monthlyRent)} / month</p>
                   </div>
                   <div className="match-score-pill">{match.score}% fit</div>
                 </div>
@@ -85,9 +97,6 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
       )}
 
       <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back to filters
-        </button>
         <button type="button" className="primary-button" onClick={onOpenFeed} disabled={!matches.length}>
           Open match feed
         </button>

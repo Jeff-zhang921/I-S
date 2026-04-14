@@ -14,23 +14,45 @@ type AccountPageProps = {
 function AccountPage({ account, starters, status, onUseStarter, onChange, onSubmit }: AccountPageProps) {
   return (
     <section className="screen split-screen account-screen">
-      <div className="hero-pane hero-pane-coral">
-        <p className="eyebrow">Page 1 of 10</p>
-        <h1>Start with sign-up, then move straight into the renter flow.</h1>
-        <p className="lede">
-          This prototype follows the Figma logic as a series of pages. The goal here is the full
-          path for someone trying to find a room.
-        </p>
+      <div className="hero-pane hero-pane-coral scene-pane">
+        <div className="hero-pane-copy">
+          <p className="eyebrow">Page 1 of 10</p>
+          <h1>Map your living vibe before the room search begins.</h1>
+          <p className="lede">
+            The first five pages now act like a guided signal map: build identity, trust, privacy,
+            and roommate rhythm before the live matching journey opens.
+          </p>
+        </div>
 
-        <div className="hero-grid">
+        <div className="hero-signal-row">
+          <span className="signal-pill">Mobile-first PWA</span>
+          <span className="signal-pill">Bristol demo data</span>
+          <span className="signal-pill">Renter and host branches</span>
+        </div>
+
+        <div className="hero-grid hero-grid-epic">
           <article className="hero-card">
-            <strong>Separate pages</strong>
-            <p>Each major step lives in its own file and screen instead of one overloaded component.</p>
+            <strong>Signal-first onboarding</strong>
+            <p>Each step adds enough context that later match cards feel intentional instead of random.</p>
           </article>
           <article className="hero-card">
-            <strong>Need a room branch</strong>
-            <p>After onboarding, the app continues only through the renter side of the flow.</p>
+            <strong>Branch-ready profile</strong>
+            <p>The same profile payload can now hand off into either the renter or owner journey.</p>
           </article>
+        </div>
+
+        <div className="hero-route-map" aria-hidden="true">
+          <div className="hero-route-panel">
+            <span>Match confidence</span>
+            <strong>82%</strong>
+            <small>Profile clarity compounds as the onboarding stack fills in.</small>
+          </div>
+          <div className="hero-route-rail">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       </div>
 
@@ -38,8 +60,8 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
         <div className="panel-shell">
           <div className="panel-head">
             <p className="panel-kicker">Create account</p>
-            <h2>Set up the renter profile</h2>
-            <p>Use the demo account or type details manually.</p>
+            <h2>Launch the profile</h2>
+            <p>Use a demo renter or enter details manually to start the compatibility journey.</p>
           </div>
 
           <div className="starter-row account-starter-row">
@@ -102,7 +124,7 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
             <StatusBanner status={status} />
 
             <div className="button-row account-actions">
-              <p className="inline-note">The prototype always starts at sign-up because there is no backend auth.</p>
+              <p className="inline-note">There is no backend auth in this prototype, so every session starts from profile setup.</p>
               <button className="primary-button" type="submit">
                 Continue to verification
               </button>

@@ -1,25 +1,43 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { ScoredOwnerCandidate } from "../../types";
 
 type OwnerSavedListPageProps = {
   candidates: ScoredOwnerCandidate[];
   likedIds: string[];
   contactedIds: string[];
+  onBack: () => void;
   onOpenCandidate: (candidateId: string) => void;
+  onOpenChats: () => void;
 };
 
 function OwnerSavedListPage({
   candidates,
   likedIds,
   contactedIds,
-  onOpenCandidate
+  onBack,
+  onOpenCandidate,
+  onOpenChats
 }: OwnerSavedListPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to suggestions" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Shortlist</p>
-        <h1>Saved and liked renters.</h1>
-        <p className="lede">This mirrors the FigJam save path for listing owners who want to shortlist before reaching out.</p>
+        <h1>Shortlisted and contacted renters.</h1>
+        <p className="lede">Save keeps a renter on the shortlist. Like marks stronger interest. Sending an intro opens the chat.</p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Shortlist"
+        description="Return to renter suggestions, reopen a shortlisted renter, or jump into active conversations."
+        showBackButton={false}
+        actions={[
+          { label: "Open chats", onClick: onOpenChats, tone: "primary", disabled: contactedIds.length === 0 }
+        ]}
+      />
 
       {candidates.length ? (
         <div className="suggestion-stack">
@@ -41,7 +59,7 @@ function OwnerSavedListPage({
                       <div>
                         <h3>{candidate.name}</h3>
                         <p className="listing-meta">
-                          {candidate.age} • {candidate.major}
+                          {candidate.age} | {candidate.major}
                         </p>
                       </div>
                       <span className="tag-chip">{isContacted ? "Intro sent" : isLiked ? "Liked" : "Saved"}</span>

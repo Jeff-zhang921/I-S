@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
+import ScreenFlowNav from "../components/ScreenFlowNav";
+import TopBackButton from "../components/TopBackButton";
 import { parseProfileList, describeCategoryScore } from "../lib/onboarding";
 import { OwnerListingDraft, PrivacyLevelOption, ProfileNotesState } from "../types";
 
@@ -24,6 +26,8 @@ type OwnerProfilePageProps = {
   profileNotes: ProfileNotesState;
   savedCount: number;
   contactedCount: number;
+  onBack: () => void;
+  onOpenChats: () => void;
   onBackToSignIn: () => void;
 };
 
@@ -66,6 +70,8 @@ function OwnerProfilePage({
   profileNotes,
   savedCount,
   contactedCount,
+  onBack,
+  onOpenChats,
   onBackToSignIn
 }: OwnerProfilePageProps) {
   const [expandedSection, setExpandedSection] = useState<OwnerProfileSectionId | null>(null);
@@ -78,6 +84,8 @@ function OwnerProfilePage({
 
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to shortlist" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Owner profile</p>
         <h1>Your host profile and room listing.</h1>
@@ -92,10 +100,18 @@ function OwnerProfilePage({
 
         <div className="profile-action-row">
           <button type="button" className="secondary-button" onClick={onBackToSignIn}>
-            Back to sign in
+            Sign out
           </button>
         </div>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Host profile"
+        description="Return to the shortlist, jump into chats, or sign out from the prototype."
+        showBackButton={false}
+        actions={[{ label: "Open chats", onClick: onOpenChats, tone: "primary", disabled: contactedCount === 0 }]}
+      />
 
       <div className="profile-accordion">
         <OwnerProfilePanel

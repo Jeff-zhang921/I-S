@@ -1,35 +1,40 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { formatOwnerRent } from "../../lib/ownerRoom";
 import { OwnerListingDraft, ScoredOwnerCandidate } from "../../types";
 
 type OwnerCandidateDetailPageProps = {
   listing: OwnerListingDraft;
   candidate: ScoredOwnerCandidate | null;
+  backLabel: string;
   onBack: () => void;
   onSave: () => void;
   onLike: () => void;
   canOpenChat: boolean;
   onOpenChat: () => void;
   onOpenIntro: () => void;
+  onOpenSaved: () => void;
 };
 
 function OwnerCandidateDetailPage({
   listing,
   candidate,
+  backLabel,
   onBack,
   onSave,
   onLike,
   canOpenChat,
   onOpenChat,
-  onOpenIntro
+  onOpenIntro,
+  onOpenSaved
 }: OwnerCandidateDetailPageProps) {
   if (!candidate) {
     return (
       <section className="screen branch-screen">
+        <TopBackButton label="Back" onClick={onBack} />
+
         <div className="empty-panel">
           <h3>No renter selected.</h3>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back
-          </button>
         </div>
       </section>
     );
@@ -37,11 +42,24 @@ function OwnerCandidateDetailPage({
 
   return (
     <section className="screen branch-screen">
+      <TopBackButton label={backLabel} onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">View profile</p>
         <h1>{candidate.name}</h1>
         <p className="lede">Profile detail for the owner branch, with fit reasons tied directly back to your room listing.</p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Renter detail"
+        description="Review the renter profile, then shortlist, mark stronger interest, or move into contact."
+        showBackButton={false}
+        actions={[
+          { label: "Shortlist", onClick: onOpenSaved },
+          { label: canOpenChat ? "Open chat" : "Send intro", onClick: canOpenChat ? onOpenChat : onOpenIntro, tone: "primary" }
+        ]}
+      />
 
       <div className="summary-grid">
         <section className="summary-panel">
@@ -129,9 +147,6 @@ function OwnerCandidateDetailPage({
       </div>
 
       <div className="button-row detail-action-footer">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back
-        </button>
         <div className="button-row compact-actions detail-action-group">
           <button type="button" className="secondary-button" onClick={onSave}>
             Save
@@ -140,7 +155,7 @@ function OwnerCandidateDetailPage({
             Like
           </button>
           <button type="button" className="secondary-button" onClick={onOpenChat} disabled={!canOpenChat}>
-            Chat
+            {canOpenChat ? "Open chat" : "Send intro to unlock chat"}
           </button>
           <button type="button" className="primary-button" onClick={onOpenIntro}>
             Send intro

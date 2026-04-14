@@ -1,3 +1,4 @@
+import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
 import { describeCategoryScore } from "../lib/onboarding";
 import { CategoryMeta, PrivacyLevelOption, ProfileNotesState, StatusState } from "../types";
@@ -36,6 +37,8 @@ function SummaryPage({
   return (
     <section className="screen summary-screen">
       <div className="summary-hero">
+        <TopBackButton label="Back to questions" onClick={onBack} />
+
         <p className="eyebrow">Page 4 of 10</p>
         <h1>{account.fullName}'s renter profile is ready.</h1>
         <p className="lede">
@@ -135,9 +138,6 @@ function SummaryPage({
       </div>
 
       <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back to questions
-        </button>
         <button type="button" className="primary-button" onClick={onContinue}>
           Continue to branch
         </button>

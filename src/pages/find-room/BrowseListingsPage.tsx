@@ -1,17 +1,28 @@
 ﻿import { roomDetailById } from "../../data/roomDetails";
 import { formatMoveIn, formatPrice } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 
 type BrowseListingsPageProps = {
   matches: ScoredRoomMatch[];
+  onBackToBranch: () => void;
   onOpenFilters: () => void;
   onOpenSuggestions: () => void;
   onOpenMatch: (matchId: string) => void;
 };
 
-function BrowseListingsPage({ matches, onOpenFilters, onOpenSuggestions, onOpenMatch }: BrowseListingsPageProps) {
+function BrowseListingsPage({
+  matches,
+  onBackToBranch,
+  onOpenFilters,
+  onOpenSuggestions,
+  onOpenMatch
+}: BrowseListingsPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to branch" onClick={onBackToBranch} />
+
       <div className="summary-hero">
         <p className="eyebrow">Browse</p>
         <h1>Browse available rooms in Bristol.</h1>
@@ -20,17 +31,18 @@ function BrowseListingsPage({ matches, onOpenFilters, onOpenSuggestions, onOpenM
         </p>
       </div>
 
-      <div className="button-row">
-        <p className="inline-note">{matches.length} room options are loaded for this prototype.</p>
-        <div className="button-row compact-actions">
-          <button type="button" className="secondary-button" onClick={onOpenFilters}>
-            Adjust filters
-          </button>
-          <button type="button" className="primary-button" onClick={onOpenSuggestions}>
-            Continue to suggestions
-          </button>
-        </div>
-      </div>
+      <ScreenFlowNav
+        eyebrow="Renter flow"
+        title="Browse listings"
+        description="Go back to the branch selection, adjust filters, or move into the ranked match list."
+        showBackButton={false}
+        actions={[
+          { label: "Adjust filters", onClick: onOpenFilters },
+          { label: "Continue to suggestions", onClick: onOpenSuggestions, tone: "primary" }
+        ]}
+      />
+
+      <p className="inline-note screen-flow-note">{matches.length} room options are loaded for this prototype.</p>
 
       <div className="listing-grid">
         {matches.map((match) => {

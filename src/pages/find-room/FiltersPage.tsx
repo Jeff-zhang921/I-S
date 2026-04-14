@@ -1,3 +1,5 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { amenityOptions, petPolicyOptions } from "../../data/findRoom";
 import { FiltersState } from "../../types";
 
@@ -13,6 +15,8 @@ type FiltersPageProps = {
 function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, onApply }: FiltersPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to browse" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Page 7 of 10</p>
         <h1>Set filters before matching.</h1>
@@ -20,6 +24,14 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
           These are the practical controls from the renter branch: price, commute, pet policy, and property features.
         </p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Renter flow"
+        title="Filters"
+        description="Return to browse or apply the current setup to open the ranked match suggestions."
+        showBackButton={false}
+        actions={[{ label: "Apply filters", onClick: onApply, tone: "primary" }]}
+      />
 
       <div className="filter-shell">
         <article className="summary-panel">
@@ -32,7 +44,7 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
 
           <div className="slider-group">
             <label className="slider-label">
-              Max rent: <strong>£{filters.maxRent}</strong>
+              Max rent: <strong>GBP{filters.maxRent}</strong>
               <input
                 type="range"
                 min="700"
@@ -110,9 +122,6 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
       </div>
 
       <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back to browse
-        </button>
         <div className="button-row compact-actions">
           <p className="inline-note">{resultCount} listings currently match these filters.</p>
           <button type="button" className="primary-button" onClick={onApply}>

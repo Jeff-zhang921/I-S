@@ -1,3 +1,5 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { formatOwnerRent } from "../../lib/ownerRoom";
 import { OwnerListingDraft, RoomAmenity } from "../../types";
 
@@ -6,12 +8,22 @@ type CreateListingPageProps = {
   candidateCount: number;
   onChange: <K extends keyof OwnerListingDraft>(field: K, value: OwnerListingDraft[K]) => void;
   onToggleAmenity: (amenity: RoomAmenity) => void;
+  onBack: () => void;
   onContinue: () => void;
 };
 
-function CreateListingPage({ listing, candidateCount, onChange, onToggleAmenity, onContinue }: CreateListingPageProps) {
+function CreateListingPage({
+  listing,
+  candidateCount,
+  onChange,
+  onToggleAmenity,
+  onBack,
+  onContinue
+}: CreateListingPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to branch" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Have a room</p>
         <h1>Create your listing and shortlist housemates.</h1>
@@ -19,6 +31,14 @@ function CreateListingPage({ listing, candidateCount, onChange, onToggleAmenity,
           This follows the FigJam owner branch: create a listing, attach room details, then review suggested renters.
         </p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Listing setup"
+        description="Go back to branch selection, or keep moving into the renter suggestions once the room is ready."
+        showBackButton={false}
+        actions={[{ label: "Continue to renter matches", onClick: onContinue, tone: "primary" }]}
+      />
 
       <div className="owner-listing-layout">
         <section className="summary-panel owner-form-panel">

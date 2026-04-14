@@ -1,3 +1,5 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
 import { ScoredOwnerCandidate } from "../../types";
 
 type OwnerSuggestionsPageProps = {
@@ -10,6 +12,8 @@ type OwnerSuggestionsPageProps = {
 function OwnerSuggestionsPage({ candidates, onBack, onOpenFeed, onInspect }: OwnerSuggestionsPageProps) {
   return (
     <section className="screen branch-screen">
+      <TopBackButton label="Back to listing" onClick={onBack} />
+
       <div className="summary-hero">
         <p className="eyebrow">Suggested renters</p>
         <h1>Suggested renters for your listing.</h1>
@@ -17,6 +21,14 @@ function OwnerSuggestionsPage({ candidates, onBack, onOpenFeed, onInspect }: Own
           This is the owner-side recommendation step from the FigJam flow after creating a room listing.
         </p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Renter suggestions"
+        description="Return to the listing, inspect any renter in detail, or move into the one-card-at-a-time owner feed."
+        showBackButton={false}
+        actions={[{ label: "Open owner match feed", onClick: onOpenFeed, tone: "primary", disabled: !candidates.length }]}
+      />
 
       {candidates.length ? (
         <div className="owner-candidate-grid">
@@ -34,7 +46,7 @@ function OwnerSuggestionsPage({ candidates, onBack, onOpenFeed, onInspect }: Own
                     <div>
                       <h3>{candidate.name}</h3>
                       <p className="listing-meta">
-                        {candidate.age} • {candidate.major}
+                        {candidate.age} | {candidate.major}
                       </p>
                     </div>
                     <div className="match-score-pill">{candidate.score}% fit</div>
@@ -68,9 +80,6 @@ function OwnerSuggestionsPage({ candidates, onBack, onOpenFeed, onInspect }: Own
       )}
 
       <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back to listing
-        </button>
         <button type="button" className="primary-button" onClick={onOpenFeed} disabled={!candidates.length}>
           Open owner match feed
         </button>

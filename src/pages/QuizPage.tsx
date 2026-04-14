@@ -1,3 +1,4 @@
+import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
 import SwipeScalePicker from "../components/SwipeScalePicker";
 import { parseProfileList } from "../lib/onboarding";
@@ -69,6 +70,8 @@ function QuizPage({
   return (
     <section className="screen quiz-screen quiz-screen-fixed">
       <aside className="quiz-rail">
+        <TopBackButton label="Back" onClick={onBack} className="top-back-button-desktop" />
+
         <p className="eyebrow">Page 3 of 10</p>
         <h1>Answer one card at a time.</h1>
         <p className="lede">
@@ -118,6 +121,8 @@ function QuizPage({
       </aside>
 
       <div className="quiz-stage">
+        <TopBackButton label="Back" onClick={onBack} className="top-back-button-mobile" />
+
         <div className="quiz-mobile-summary">
           <div className="quiz-mobile-topline">
             <p className="eyebrow">Page 3 of 10</p>
@@ -206,9 +211,6 @@ function QuizPage({
           <StatusBanner status={status} />
 
           <div className="button-row quiz-actions">
-            <button type="button" className="secondary-button" onClick={onBack}>
-              Back
-            </button>
             {currentQuestion.type === "scale" ? (
               <p className="inline-note">Tap 1-5 or drag the slider. The next card opens immediately.</p>
             ) : (

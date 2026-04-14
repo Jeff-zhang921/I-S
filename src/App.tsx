@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import AppHeader from "./components/AppHeader";
 import BottomNav from "./components/BottomNav";
 import AccountPage from "./pages/AccountPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -64,11 +65,12 @@ import {
   StatusState
 } from "./types";
 import "./styles.css";
+import "./epic-design.css";
 
-type DetailReturnScreen = "browseListings" | "suggestions" | "matchFeed" | "savedList" | "chatThread";
+type DetailReturnScreen = "browseListings" | "suggestions" | "matchFeed" | "savedList" | "chatThread" | "sendIntro";
 type IntroBackScreen = "matchFeed" | "matchDetail" | "savedList";
 type RenterNavScreen = "browseListings" | "suggestions" | "savedList" | "groupChat" | "profile";
-type OwnerDetailReturnScreen = "ownerSuggestions" | "ownerMatchFeed" | "ownerSavedList" | "ownerGroupChat";
+type OwnerDetailReturnScreen = "ownerSuggestions" | "ownerMatchFeed" | "ownerSavedList" | "ownerGroupChat" | "ownerSendIntro";
 type OwnerIntroBackScreen = "ownerMatchFeed" | "ownerCandidateDetail" | "ownerSavedList";
 type OwnerNavScreen = "ownerListing" | "ownerSuggestions" | "ownerSavedList" | "ownerGroupChat" | "ownerProfile";
 type JourneyMode = "renter" | "owner";
@@ -88,6 +90,59 @@ const ownerNavItems = [
   { id: "ownerGroupChat", label: "Chats", badge: "GC" },
   { id: "ownerProfile", label: "Profile", badge: "ME" }
 ] as const;
+const onboardingHeaderItems = [
+  { id: "account", label: "Account" },
+  { id: "verify", label: "Trust" },
+  { id: "quiz", label: "Signals" },
+  { id: "summary", label: "Profile" },
+  { id: "pathChoice", label: "Branch" }
+] as const;
+
+function getRenterScreenLabel(screen: DetailReturnScreen | IntroBackScreen | RenterNavScreen | "filters") {
+  switch (screen) {
+    case "browseListings":
+      return "browse";
+    case "filters":
+      return "filters";
+    case "suggestions":
+      return "suggestions";
+    case "matchFeed":
+      return "match feed";
+    case "matchDetail":
+      return "room detail";
+    case "savedList":
+      return "interested houses";
+    case "sendIntro":
+      return "intro";
+    case "groupChat":
+      return "chats";
+    case "chatThread":
+      return "chat";
+    case "profile":
+      return "profile";
+  }
+}
+
+function getOwnerScreenLabel(screen: OwnerDetailReturnScreen | OwnerIntroBackScreen | OwnerNavScreen) {
+  switch (screen) {
+    case "ownerListing":
+      return "listing";
+    case "ownerSuggestions":
+      return "suggestions";
+    case "ownerMatchFeed":
+      return "match feed";
+    case "ownerCandidateDetail":
+      return "renter detail";
+    case "ownerSavedList":
+      return "shortlist";
+    case "ownerSendIntro":
+      return "intro";
+    case "ownerGroupChat":
+      return "chats";
+    case "ownerProfile":
+      return "profile";
+  }
+}
 
 function buildIntroDraft(name: string, match: ScoredRoomMatch) {
   const senderName = name.trim() || "a renter";
@@ -185,6 +240,71 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+    let frameId = 0;
+    let ticking = false;
+
+    const syncMotionPreferences = () => {
+      root.classList.toggle("reduced-motion", reducedMotionQuery.matches);
+      root.classList.toggle("coarse-pointer", coarsePointerQuery.matches);
+      root.style.setProperty("--scroll-depth-strength", coarsePointerQuery.matches ? "0.38" : "1");
+
+      if (reducedMotionQuery.matches) {
+        root.style.setProperty("--scroll-y", "0");
+      }
+    };
+
+    const updateScrollDepth = () => {
+      root.style.setProperty("--scroll-y", window.scrollY.toString());
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (reducedMotionQuery.matches || ticking) {
+        return;
+      }
+
+      ticking = true;
+      frameId = window.requestAnimationFrame(updateScrollDepth);
+    };
+
+    const bindMediaListener = (query: MediaQueryList, listener: () => void) => {
+      const legacyQuery = query as MediaQueryList & {
+        addListener?: (callback: () => void) => void;
+        removeListener?: (callback: () => void) => void;
+      };
+
+      if (typeof query.addEventListener === "function") {
+        query.addEventListener("change", listener);
+        return () => query.removeEventListener("change", listener);
+      }
+
+      legacyQuery.addListener?.(listener);
+      return () => legacyQuery.removeListener?.(listener);
+    };
+
+    syncMotionPreferences();
+    updateScrollDepth();
+
+    const cleanupReducedMotion = bindMediaListener(reducedMotionQuery, syncMotionPreferences);
+    const cleanupCoarsePointer = bindMediaListener(coarsePointerQuery, syncMotionPreferences);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      cleanupReducedMotion();
+      cleanupCoarsePointer();
+      window.removeEventListener("scroll", handleScroll);
+      window.cancelAnimationFrame(frameId);
+      root.classList.remove("coarse-pointer", "reduced-motion");
+      root.style.setProperty("--scroll-depth-strength", "1");
+      root.style.setProperty("--scroll-y", "0");
+    };
+  }, []);
+
   const activeQuestionBank = useMemo(
     () => questionBank.filter((question) => isQuestionVisible(question, account.privacyLevel)),
     [account.privacyLevel]
@@ -279,10 +399,8 @@ function App() {
     : null;
   const savedMatches = allScoredMatches.filter((match) => savedIds.includes(match.id));
   const savedOwnerCandidates = scoredOwnerCandidates.filter((candidate) => ownerSavedIds.includes(candidate.id));
-  const chatEligibleIds = [...new Set([...likedIds, ...contactedIds])];
-  const chatMatchPool = allScoredMatches.filter(
-    (match) => chatEligibleIds.includes(match.id)
-  );
+  const chatEligibleIds = contactedIds;
+  const chatMatchPool = allScoredMatches.filter((match) => chatEligibleIds.includes(match.id));
   const ownerChatPool = scoredOwnerCandidates.filter((candidate) => ownerContactedIds.includes(candidate.id));
   const activeChatMatch =
     selectedMatch && chatEligibleIds.includes(selectedMatch.id) ? selectedMatch : chatMatchPool[0] ?? null;
@@ -304,22 +422,15 @@ function App() {
     "browseListings",
     "filters",
     "suggestions",
-    "matchFeed",
-    "matchDetail",
     "savedList",
-    "sendIntro",
     "groupChat",
     "profile"
   ].includes(screen);
   const showOwnerNav = [
     "ownerListing",
     "ownerSuggestions",
-    "ownerMatchFeed",
-    "ownerCandidateDetail",
     "ownerSavedList",
-    "ownerSendIntro",
     "ownerGroupChat",
-    "ownerChatThread",
     "ownerProfile"
   ].includes(screen);
   const showPrimaryNav = showRenterNav || showOwnerNav;
@@ -343,6 +454,9 @@ function App() {
         }
         if (detailReturnScreen === "chatThread") {
           return "groupChat";
+        }
+        if (detailReturnScreen === "sendIntro") {
+          return introBackScreen === "savedList" ? "savedList" : "suggestions";
         }
         return "suggestions";
       case "chatThread":
@@ -371,6 +485,9 @@ function App() {
         if (ownerDetailReturnScreen === "ownerGroupChat") {
           return "ownerGroupChat";
         }
+        if (ownerDetailReturnScreen === "ownerSendIntro") {
+          return ownerIntroBackScreen === "ownerSavedList" ? "ownerSavedList" : "ownerSuggestions";
+        }
         return "ownerSuggestions";
       case "ownerSendIntro":
         return ownerIntroBackScreen === "ownerSavedList" ? "ownerSavedList" : "ownerSuggestions";
@@ -378,6 +495,43 @@ function App() {
         return "ownerSuggestions";
     }
   })() as OwnerNavScreen;
+  const showOnboardingHeader = onboardingHeaderItems.some((item) => item.id === screen);
+  const onboardingHeaderCopy = (() => {
+    switch (screen) {
+      case "account":
+        return {
+          title: "Profile ignition",
+          subtitle: "Set the base identity before the compatibility engine opens."
+        };
+      case "verify":
+        return {
+          title: "Trust layer",
+          subtitle: "Verification and privacy controls shape what the app reveals later."
+        };
+      case "quiz":
+        return {
+          title: currentCategory.title,
+          subtitle: `Question ${safeQuestionIndex + 1} of ${totalQuestions} in the compatibility survey.`
+        };
+      case "summary":
+        return {
+          title: "Compatibility profile",
+          subtitle: "Review the signal mix before choosing the live renter or owner branch."
+        };
+      case "pathChoice":
+        return {
+          title: "Live mode selection",
+          subtitle: "Choose whether to search for a room or publish one."
+        };
+      default:
+        return null;
+    }
+  })();
+  const appSceneClass = showOnboardingHeader
+    ? "app-scene-onboarding"
+    : journeyMode === "owner"
+      ? "app-scene-owner"
+      : "app-scene-renter";
 
   function clearStatus() {
     setStatus(emptyStatus);
@@ -568,7 +722,6 @@ function App() {
     }
 
     addSavedMatch(match.id);
-    addLikedMatch(match.id);
     storeDefaultIntro(match);
     setSelectedMatchId(match.id);
     setIntroBackScreen(backScreen);
@@ -583,7 +736,6 @@ function App() {
     }
 
     addSavedOwnerCandidate(candidate.id);
-    addLikedOwnerCandidate(candidate.id);
     storeDefaultOwnerIntro(candidate);
     setSelectedOwnerCandidateId(candidate.id);
     setOwnerIntroBackScreen(backScreen);
@@ -598,7 +750,7 @@ function App() {
     }
 
     if (!chatEligibleIds.includes(match.id)) {
-      setStatus({ kind: "error", message: "Like this house first to unlock the group chat." });
+      setStatus({ kind: "error", message: "Send an intro first to unlock the house group chat." });
       return;
     }
 
@@ -769,14 +921,7 @@ function App() {
         setScreen("browseListings");
         break;
       case "suggestions":
-        if (!filteredMatches.length) {
-          setScreen("browseListings");
-          break;
-        }
-
-        setSelectedMatchId(filteredMatches[feedIndex]?.id ?? filteredMatches[0].id);
-        setFeedIndex((current) => (current < filteredMatches.length ? current : 0));
-        setScreen("matchFeed");
+        setScreen(filteredMatches.length ? "suggestions" : "browseListings");
         break;
       case "savedList":
         setScreen("savedList");
@@ -841,6 +986,24 @@ function App() {
     setFeedIndex((current) => current + 1);
   }
 
+  function handleLikeMatch(matchId: string | null) {
+    if (!matchId) {
+      return;
+    }
+
+    addSavedMatch(matchId);
+    addLikedMatch(matchId);
+  }
+
+  function handleLikeAndAdvance() {
+    if (!currentFeedMatch) {
+      return;
+    }
+
+    handleLikeMatch(currentFeedMatch.id);
+    setFeedIndex((current) => current + 1);
+  }
+
   function handleSaveOwnerCandidate(candidateId: string | null) {
     if (!candidateId) {
       return;
@@ -855,6 +1018,24 @@ function App() {
     }
 
     addSavedOwnerCandidate(currentOwnerCandidate.id);
+    setOwnerFeedIndex((current) => current + 1);
+  }
+
+  function handleLikeOwnerCandidate(candidateId: string | null) {
+    if (!candidateId) {
+      return;
+    }
+
+    addSavedOwnerCandidate(candidateId);
+    addLikedOwnerCandidate(candidateId);
+  }
+
+  function handleLikeOwnerAndAdvance() {
+    if (!currentOwnerCandidate) {
+      return;
+    }
+
+    handleLikeOwnerCandidate(currentOwnerCandidate.id);
     setOwnerFeedIndex((current) => current + 1);
   }
 
@@ -960,7 +1141,6 @@ function App() {
     }
 
     addSavedOwnerCandidate(selectedOwnerCandidate.id);
-    addLikedOwnerCandidate(selectedOwnerCandidate.id);
     setOwnerContactedIds((current) => (current.includes(selectedOwnerCandidate.id) ? current : [...current, selectedOwnerCandidate.id]));
     setOwnerIntroDrafts((current) => ({ ...current, [selectedOwnerCandidate.id]: draft }));
     appendOwnerChatMessage(selectedOwnerCandidate.id, {
@@ -1133,7 +1313,17 @@ function App() {
         );
 
       case "pathChoice":
-        return <PathChoicePage onChooseNeedRoom={handleStartRenterJourney} onChooseHaveRoom={handleStartOwnerJourney} />;
+        return (
+          <PathChoicePage
+            onBack={() => {
+              setQuestionIndex(Math.max(totalQuestions - 1, 0));
+              setScreen("summary");
+              clearStatus();
+            }}
+            onChooseNeedRoom={handleStartRenterJourney}
+            onChooseHaveRoom={handleStartOwnerJourney}
+          />
+        );
 
       case "ownerListing":
         return (
@@ -1142,6 +1332,7 @@ function App() {
             candidateCount={scoredOwnerCandidates.length}
             onChange={updateOwnerListing}
             onToggleAmenity={toggleOwnerAmenity}
+            onBack={() => setScreen("pathChoice")}
             onContinue={() => setScreen("ownerSuggestions")}
           />
         );
@@ -1168,7 +1359,7 @@ function App() {
             onOpenSaved={() => setScreen("ownerSavedList")}
             onPass={handlePassOwnerCandidate}
             onSave={handleSaveOwnerAndAdvance}
-            onLike={() => currentOwnerCandidate && openOwnerIntro(currentOwnerCandidate.id, "ownerMatchFeed")}
+            onLike={handleLikeOwnerAndAdvance}
           />
         );
 
@@ -1177,12 +1368,14 @@ function App() {
           <OwnerCandidateDetailPage
             listing={ownerListing}
             candidate={selectedOwnerCandidate}
+            backLabel={`Back to ${getOwnerScreenLabel(ownerDetailReturnScreen)}`}
             onBack={() => setScreen(ownerDetailReturnScreen)}
             onSave={() => handleSaveOwnerCandidate(selectedOwnerCandidate?.id ?? null)}
-            onLike={() => selectedOwnerCandidate && addLikedOwnerCandidate(selectedOwnerCandidate.id)}
+            onLike={() => handleLikeOwnerCandidate(selectedOwnerCandidate?.id ?? null)}
             canOpenChat={selectedOwnerCandidate ? ownerContactedIds.includes(selectedOwnerCandidate.id) : false}
             onOpenChat={() => selectedOwnerCandidate && openOwnerGroupChat(selectedOwnerCandidate.id)}
             onOpenIntro={() => selectedOwnerCandidate && openOwnerIntro(selectedOwnerCandidate.id, "ownerCandidateDetail")}
+            onOpenSaved={() => setScreen("ownerSavedList")}
           />
         );
 
@@ -1192,7 +1385,9 @@ function App() {
             candidates={savedOwnerCandidates}
             likedIds={ownerLikedIds}
             contactedIds={ownerContactedIds}
+            onBack={() => setScreen("ownerSuggestions")}
             onOpenCandidate={(candidateId) => openOwnerCandidateDetail(candidateId, "ownerSavedList")}
+            onOpenChats={() => setScreen("ownerGroupChat")}
           />
         );
 
@@ -1203,6 +1398,7 @@ function App() {
             candidate={selectedOwnerCandidate}
             draft={currentOwnerIntroDraft}
             status={status}
+            backLabel={`Back to ${getOwnerScreenLabel(ownerIntroBackScreen)}`}
             onChangeDraft={(value) => {
               if (!selectedOwnerCandidate) {
                 return;
@@ -1218,6 +1414,9 @@ function App() {
               setScreen(ownerIntroBackScreen);
               clearStatus();
             }}
+            onOpenCandidate={() =>
+              selectedOwnerCandidate && openOwnerCandidateDetail(selectedOwnerCandidate.id, "ownerSendIntro")
+            }
             onSend={handleSendOwnerIntro}
           />
         );
@@ -1228,6 +1427,8 @@ function App() {
             threadCandidates={ownerChatPool}
             activeCandidateId={activeOwnerChatCandidate?.id ?? null}
             getThread={getOwnerChatThread}
+            onBack={() => setScreen("ownerSavedList")}
+            onOpenSaved={() => setScreen("ownerSavedList")}
             onOpenThread={(candidateId) => {
               setSelectedOwnerCandidateId(candidateId);
               clearStatus();
@@ -1275,6 +1476,8 @@ function App() {
             profileNotes={profileNotes}
             savedCount={savedOwnerCandidates.length}
             contactedCount={ownerContactedIds.length}
+            onBack={() => setScreen("ownerSavedList")}
+            onOpenChats={() => setScreen("ownerGroupChat")}
             onBackToSignIn={resetPrototype}
           />
         );
@@ -1283,6 +1486,7 @@ function App() {
         return (
           <BrowseListingsPage
             matches={filteredMatches}
+            onBackToBranch={() => setScreen("pathChoice")}
             onOpenFilters={() => setScreen("filters")}
             onOpenSuggestions={() => setScreen("suggestions")}
             onOpenMatch={(matchId) => openMatchDetail(matchId, "browseListings")}
@@ -1330,7 +1534,7 @@ function App() {
             onOpenSaved={() => setScreen("savedList")}
             onPass={handlePassMatch}
             onSave={handleSaveAndAdvance}
-            onLike={() => currentFeedMatch && openIntro(currentFeedMatch.id, "matchFeed")}
+            onLike={handleLikeAndAdvance}
           />
         );
 
@@ -1338,12 +1542,14 @@ function App() {
         return (
           <MatchDetailPage
             match={selectedMatch}
+            backLabel={`Back to ${getRenterScreenLabel(detailReturnScreen === "sendIntro" ? introBackScreen : detailReturnScreen)}`}
             onBack={() => setScreen(detailReturnScreen)}
             onSave={() => handleSaveMatch(selectedMatch?.id ?? null)}
-            canOpenChat={selectedMatch ? chatEligibleIds.includes(selectedMatch.id) : false}
+            canOpenChat={selectedMatch ? contactedIds.includes(selectedMatch.id) : false}
             onOpenChat={() => selectedMatch && openGroupChat(selectedMatch.id)}
-            onLike={() => selectedMatch && openIntro(selectedMatch.id, "matchDetail")}
+            onLike={() => handleLikeMatch(selectedMatch?.id ?? null)}
             onOpenIntro={() => selectedMatch && openIntro(selectedMatch.id, "matchDetail")}
+            onOpenSaved={() => setScreen("savedList")}
           />
         );
 
@@ -1353,8 +1559,10 @@ function App() {
             savedMatches={savedMatches}
             likedIds={likedIds}
             contactedIds={contactedIds}
+            onBack={() => setScreen("suggestions")}
             onOpenMatch={(matchId) => openMatchDetail(matchId, "savedList")}
             onOpenChat={openGroupChat}
+            onOpenChatsHome={() => setScreen("groupChat")}
           />
         );
 
@@ -1364,6 +1572,7 @@ function App() {
             match={selectedMatch}
             draft={currentIntroDraft}
             status={status}
+            backLabel={`Back to ${getRenterScreenLabel(introBackScreen)}`}
             onChangeDraft={(value) => {
               if (!selectedMatch) {
                 return;
@@ -1379,6 +1588,7 @@ function App() {
               setScreen(introBackScreen);
               clearStatus();
             }}
+            onOpenMatch={() => selectedMatch && openMatchDetail(selectedMatch.id, "sendIntro")}
             onSend={handleSendIntro}
           />
         );
@@ -1389,6 +1599,8 @@ function App() {
             threadMatches={chatMatchPool}
             activeMatchId={activeChatMatch?.id ?? null}
             getThread={getChatThread}
+            onBack={() => setScreen("savedList")}
+            onOpenSaved={() => setScreen("savedList")}
             onOpenThread={(matchId) => {
               setSelectedMatchId(matchId);
               clearStatus();
@@ -1433,6 +1645,8 @@ function App() {
             profileNotes={profileNotes}
             savedCount={savedMatches.length}
             contactedCount={contactedIds.length}
+            onBack={() => setScreen("savedList")}
+            onOpenChats={() => setScreen("groupChat")}
             onBackToSignIn={resetPrototype}
           />
         );
@@ -1440,13 +1654,33 @@ function App() {
   })();
 
   return (
-    <div className="app">
-      <div className="orb orb-a" aria-hidden="true" />
-      <div className="orb orb-b" aria-hidden="true" />
-      <div className="orb orb-c" aria-hidden="true" />
+    <div className={["app", appSceneClass].join(" ")}>
+      <div className="app-atmosphere app-atmosphere-a layer" data-depth="0" aria-hidden="true" />
+      <div className="app-atmosphere app-atmosphere-b layer" data-depth="1" aria-hidden="true" />
+      <div className="app-atmosphere app-atmosphere-c layer" data-depth="2" aria-hidden="true" />
+      <div className="app-atmosphere app-atmosphere-d layer" data-depth="5" aria-hidden="true" />
 
-      <div className="stage-shell">
+      <div
+        className={[
+          "stage-shell",
+          showOnboardingHeader ? "stage-shell-onboarding" : "",
+          journeyMode === "owner" ? "stage-shell-owner" : "stage-shell-renter"
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <div className="stage-grid" aria-hidden="true" />
+        <div className="stage-shell-glow" aria-hidden="true" />
         <div className="app-layout">
+          {showOnboardingHeader && onboardingHeaderCopy ? (
+            <AppHeader
+              items={onboardingHeaderItems as unknown as Array<{ id: string; label: string }>}
+              activeId={screen}
+              title={onboardingHeaderCopy.title}
+              subtitle={onboardingHeaderCopy.subtitle}
+            />
+          ) : null}
+
           <div
             className={[
               "app-view",

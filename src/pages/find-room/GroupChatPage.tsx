@@ -1,21 +1,34 @@
-﻿import { GroupChatThread, ScoredRoomMatch } from "../../types";
+import ScreenFlowNav from "../../components/ScreenFlowNav";
+import TopBackButton from "../../components/TopBackButton";
+import { GroupChatThread, ScoredRoomMatch } from "../../types";
 
 type GroupChatPageProps = {
   threadMatches: ScoredRoomMatch[];
   activeMatchId: string | null;
   getThread: (matchId: string) => GroupChatThread | null;
   onOpenThread: (matchId: string) => void;
+  onBack: () => void;
+  onOpenSaved: () => void;
 };
 
-function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }: GroupChatPageProps) {
+function GroupChatPage({
+  threadMatches,
+  activeMatchId,
+  getThread,
+  onOpenThread,
+  onBack,
+  onOpenSaved
+}: GroupChatPageProps) {
   if (!threadMatches.length) {
     return (
       <section className="screen chat-screen">
         <div className="chat-shell chat-empty-shell">
+          <TopBackButton label="Back to interested houses" onClick={onBack} />
+
           <p className="eyebrow">Chats</p>
           <h1>No active house chats yet.</h1>
           <p className="chat-subtitle">
-            Like a house or send an intro first. Then the owner and current tenant group chat will appear here.
+            Send an intro first. Then the owner and current tenant group chat will appear here.
           </p>
         </div>
       </section>
@@ -25,6 +38,8 @@ function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }
   return (
     <section className="screen chat-screen">
       <div className="chat-shell chat-list-shell">
+        <TopBackButton label="Back to interested houses" onClick={onBack} />
+
         <header className="chat-header">
           <div>
             <p className="eyebrow">Chats</p>
@@ -37,6 +52,14 @@ function GroupChatPage({ threadMatches, activeMatchId, getThread, onOpenThread }
             <span>threads</span>
           </div>
         </header>
+
+        <ScreenFlowNav
+          eyebrow="Renter flow"
+          title="House chats"
+          description="Return to your saved houses or open any contacted house thread from here."
+          showBackButton={false}
+          actions={[{ label: "Interested houses", onClick: onOpenSaved }]}
+        />
 
         <div className="chat-thread-list chat-thread-list-scroll">
           {threadMatches.map((match) => {

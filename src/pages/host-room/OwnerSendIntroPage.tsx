@@ -1,4 +1,6 @@
+import ScreenFlowNav from "../../components/ScreenFlowNav";
 import StatusBanner from "../../components/StatusBanner";
+import TopBackButton from "../../components/TopBackButton";
 import { OwnerListingDraft, ScoredOwnerCandidate, StatusState } from "../../types";
 
 type OwnerSendIntroPageProps = {
@@ -6,9 +8,11 @@ type OwnerSendIntroPageProps = {
   candidate: ScoredOwnerCandidate | null;
   draft: string;
   status: StatusState;
+  backLabel: string;
   onChangeDraft: (value: string) => void;
   onAppendQuestion: (question: string) => void;
   onBack: () => void;
+  onOpenCandidate: () => void;
   onSend: () => void;
 };
 
@@ -17,33 +21,47 @@ function OwnerSendIntroPage({
   candidate,
   draft,
   status,
+  backLabel,
   onChangeDraft,
   onAppendQuestion,
   onBack,
+  onOpenCandidate,
   onSend
 }: OwnerSendIntroPageProps) {
   if (!candidate) {
     return (
       <section className="screen branch-screen">
+        <TopBackButton label="Back" onClick={onBack} />
+
         <div className="empty-panel">
           <h3>No renter selected.</h3>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back
-          </button>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="screen branch-screen">
+    <section className="screen branch-screen send-intro-screen">
+      <TopBackButton label={backLabel} onClick={onBack} />
+
       <div className="summary-hero">
-        <p className="eyebrow">Like outcome</p>
+        <p className="eyebrow">Contact step</p>
         <h1>Send intro or quick questions.</h1>
         <p className="lede">
-          Reach out to {candidate.name} about your room in {listing.neighborhood} before deciding on a viewing.
+          Reach out to {candidate.name} about your room in {listing.neighborhood}. Sending this opens the renter chat thread.
         </p>
       </div>
+
+      <ScreenFlowNav
+        eyebrow="Owner flow"
+        title="Intro outreach"
+        description="Go back to the renter profile or send the first outreach message from here."
+        showBackButton={false}
+        actions={[
+          { label: "Renter profile", onClick: onOpenCandidate },
+          { label: "Send intro", onClick: onSend, tone: "primary" }
+        ]}
+      />
 
       <div className="summary-grid">
         <section className="summary-panel">
@@ -83,9 +101,6 @@ function OwnerSendIntroPage({
       </div>
 
       <div className="button-row">
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back
-        </button>
         <button type="button" className="primary-button" onClick={onSend}>
           Send intro
         </button>

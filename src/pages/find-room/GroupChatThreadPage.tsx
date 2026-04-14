@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import StatusBanner from "../../components/StatusBanner";
+import TopBackButton from "../../components/TopBackButton";
 import { GroupChatThread, ScoredRoomMatch, StatusState } from "../../types";
 
 type GroupChatThreadPageProps = {
@@ -45,10 +46,9 @@ function GroupChatThreadPage({
     return (
       <section className="screen chat-screen">
         <div className="chat-shell chat-empty-shell">
+          <TopBackButton label="Back to chats" onClick={onBack} />
+
           <h3>No chat selected.</h3>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back to chats
-          </button>
         </div>
       </section>
     );
@@ -57,10 +57,9 @@ function GroupChatThreadPage({
   return (
     <section className="screen chat-screen">
       <div className="chat-shell chat-thread-shell">
+        <TopBackButton label="Back to chats" onClick={onBack} />
+
         <header className="chat-thread-toolbar">
-          <button type="button" className="secondary-button chat-toolbar-button" onClick={onBack}>
-            Back
-          </button>
           <div className="chat-thread-title-block">
             <h1>{activeThread.title}</h1>
             <p className="chat-thread-context">

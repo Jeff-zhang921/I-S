@@ -1,6 +1,7 @@
 ﻿import { formatMoveIn, formatPrice } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
 
+import TopBackButton from "../../components/TopBackButton";
 type MatchFeedPageProps = {
   currentMatch: ScoredRoomMatch | null;
   currentIndex: number;
@@ -27,12 +28,11 @@ function MatchFeedPage({
   if (!currentMatch) {
     return (
       <section className="screen branch-screen feed-screen">
+        <TopBackButton label="Back to suggestions" onClick={onBack} />
+
         <div className="empty-panel">
           <h3>No results in the feed.</h3>
           <p>Go back to filters and broaden the search.</p>
-          <button type="button" className="secondary-button" onClick={onBack}>
-            Back to suggestions
-          </button>
         </div>
       </section>
     );
@@ -40,11 +40,13 @@ function MatchFeedPage({
 
   return (
     <section className="screen branch-screen feed-screen">
+      <TopBackButton label="Back to suggestions" onClick={onBack} />
+
       <div className="summary-hero feed-hero">
         <p className="eyebrow">Page 9 of 10</p>
         <h1>Match feed for the renter journey.</h1>
         <p className="lede">
-          This is the action step from the FigJam flow. Pass, save, or like the current room + roommate pair.
+          Pass, save, or like the current room + roommate pair. Open details when you want to send an intro.
         </p>
       </div>
 
@@ -54,9 +56,6 @@ function MatchFeedPage({
           <div className="button-column">
             <button type="button" className="secondary-button" onClick={onOpenSaved}>
               Open saved list
-            </button>
-            <button type="button" className="secondary-button" onClick={onBack}>
-              Back to suggestions
             </button>
           </div>
         </aside>
