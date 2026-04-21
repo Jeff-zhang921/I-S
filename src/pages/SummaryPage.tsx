@@ -48,7 +48,7 @@ function SummaryPage({
         <div className="summary-tags">
           <span>{answeredCount} answers</span>
           <span>{account.verificationMethod} verified</span>
-          <span>{privacyLevelMeta.title} privacy</span>
+          <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{account.idCheckChoice === "include" ? "ID check included" : "ID check skipped"}</span>
         </div>
 
@@ -102,7 +102,7 @@ function SummaryPage({
               <span>{account.phone}</span>
             </article>
             <article className="detail-card">
-              <strong>Privacy level</strong>
+              <strong>Profile visibility</strong>
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
             </article>
             <article className="detail-card detail-card-wide">

@@ -9,6 +9,10 @@ export function formatPrice(amount: number) {
   }).format(amount);
 }
 
+export function formatPerPersonMonthly(amount: number) {
+  return `${formatPrice(amount)} per person / per month`;
+}
+
 export function formatMoveIn(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
@@ -21,6 +25,11 @@ export function toggleAmenity(current: string[], amenity: string) {
   return current.includes(amenity)
     ? current.filter((item) => item !== amenity)
     : [...current, amenity];
+}
+
+export function getOccupantCount(occupantsLabel: string) {
+  const match = occupantsLabel.match(/\d+/);
+  return match ? Number(match[0]) : 0;
 }
 
 export function getFilteredMatches<T extends RoommateMatch>(matches: T[], filters: FiltersState): T[] {

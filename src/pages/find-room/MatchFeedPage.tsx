@@ -1,7 +1,8 @@
-﻿import { formatMoveIn, formatPrice } from "../../lib/findRoom";
+import TopBackButton from "../../components/TopBackButton";
+import { roomDetailById } from "../../data/roomDetails";
+import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
 
-import TopBackButton from "../../components/TopBackButton";
 type MatchFeedPageProps = {
   currentMatch: ScoredRoomMatch | null;
   currentIndex: number;
@@ -38,6 +39,9 @@ function MatchFeedPage({
     );
   }
 
+  const detail = roomDetailById[currentMatch.id];
+  const occupantCount = getOccupantCount(detail.currentOccupants);
+
   return (
     <section className="screen branch-screen feed-screen">
       <TopBackButton label="Back to suggestions" onClick={onBack} />
@@ -46,7 +50,7 @@ function MatchFeedPage({
         <p className="eyebrow">Page 9 of 10</p>
         <h1>Match feed for the renter journey.</h1>
         <p className="lede">
-          Pass, save, or like the current room + roommate pair. Open details when you want to send an intro.
+          Pass, save, or like the current room + roommate pair. Open details when you want to tell the tenants you are interested.
         </p>
       </div>
 
@@ -65,13 +69,25 @@ function MatchFeedPage({
             <div className="listing-top">
               <div>
                 <h2>{currentMatch.roomTitle}</h2>
-                <p className="listing-meta">{currentMatch.neighborhood} • {formatPrice(currentMatch.monthlyRent)} / month</p>
+                <p className="listing-meta">{currentMatch.neighborhood} | {formatPerPersonMonthly(currentMatch.monthlyRent)}</p>
               </div>
               <div className="match-score-pill">{currentMatch.score}% fit</div>
             </div>
 
-            <p>{currentMatch.roommate.name}, {currentMatch.roommate.age} • {currentMatch.roommate.major}</p>
-            <p>{currentMatch.roommate.vibe}</p>
+            <div className="listing-preview-meta">
+              <div className="occupancy-row">
+                <div className="occupancy-icons" aria-hidden="true">
+                  {Array.from({ length: Math.min(Math.max(occupantCount, 1), 3) }).map((_, index) => (
+                    <span key={`${currentMatch.id}-feed-occupant-${index}`} />
+                  ))}
+                </div>
+                <span>{detail.currentOccupants}</span>
+              </div>
+              <span className="listing-subcopy">{detail.roomSize} | {detail.bathrooms} bathrooms</span>
+            </div>
+
+            <p>{currentMatch.roommate.name}, {currentMatch.roommate.age} | {currentMatch.roommate.major}</p>
+            <p className="flatmate-summary">Flatmate vibe: {currentMatch.roommate.vibe}</p>
 
             <div className="listing-facts">
               <span>Move-in {formatMoveIn(currentMatch.moveIn)}</span>

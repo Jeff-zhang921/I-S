@@ -1,8 +1,12 @@
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPrice } from "../../lib/findRoom";
+import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
+
+function formatRoomBasics(roomSize: string, bathrooms: number) {
+  return `${roomSize} | ${bathrooms} ${bathrooms === 1 ? "bathroom" : "bathrooms"}`;
+}
 
 type SuggestionsPageProps = {
   matches: ScoredRoomMatch[];
@@ -37,6 +41,7 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
           {matches.map((match) => {
             const detail = roomDetailById[match.id];
             const coverPhoto = detail.photos[0];
+            const occupantCount = getOccupantCount(detail.currentOccupants);
 
             return (
               <button key={match.id} type="button" className="suggestion-card listing-card-button" onClick={() => onInspect(match.id)}>
@@ -45,12 +50,26 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
                 <div className="listing-top">
                   <div>
                     <h3>{match.roomTitle}</h3>
-                    <p className="listing-meta">{match.neighborhood} | {formatPrice(match.monthlyRent)} / month</p>
+                    <p className="listing-meta">{match.neighborhood} | {formatPerPersonMonthly(match.monthlyRent)}</p>
                   </div>
                   <div className="match-score-pill">{match.score}% fit</div>
                 </div>
 
                 <p>{detail.summary}</p>
+                <div className="listing-preview-meta">
+                  <div className="occupancy-row">
+                    <div className="occupancy-icons" aria-hidden="true">
+                      {Array.from({ length: Math.min(Math.max(occupantCount, 1), 3) }).map((_, index) => (
+                        <span key={`${match.id}-suggestion-occupant-${index}`} />
+                      ))}
+                    </div>
+                    <span>{detail.currentOccupants}</span>
+                  </div>
+                  <span className="listing-subcopy">{formatRoomBasics(detail.roomSize, detail.bathrooms)}</span>
+                </div>
+                <p className="flatmate-summary">
+                  Flatmate vibe: {match.roommate.name} brings a {match.roommate.vibe.toLowerCase()} setup.
+                </p>
 
                 <div className="suggestion-grid">
                   <div>

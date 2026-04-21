@@ -1,7 +1,8 @@
+import PhotoCarousel from "../../components/PhotoCarousel";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPrice } from "../../lib/findRoom";
+import { formatMoveIn, formatPerPersonMonthly, formatPrice, getOccupantCount } from "../../lib/findRoom";
 import { ScoredRoomMatch } from "../../types";
 
 type MatchDetailPageProps = {
@@ -40,7 +41,9 @@ function MatchDetailPage({
   }
 
   const detail = roomDetailById[match.id];
-  const [heroPhoto, ...galleryPhotos] = detail.photos;
+  const occupantCount = getOccupantCount(detail.currentOccupants);
+  const contactLabel = canOpenChat ? "Message tenants" : "I'm interested";
+  const handleContactAction = canOpenChat ? onOpenChat : onOpenIntro;
 
   return (
     <section className="screen branch-screen">
@@ -49,80 +52,58 @@ function MatchDetailPage({
       <div className="summary-hero">
         <p className="eyebrow">House details</p>
         <h1>{match.roomTitle}</h1>
-        <p className="lede">Full fake listing detail with pictures, house information, roommate context, and owner notes.</p>
+        <p className="lede">Review the house, the current tenants, and the pricing breakdown before you decide whether to reach out.</p>
       </div>
 
       <ScreenFlowNav
         eyebrow="Renter flow"
         title="Room detail"
-        description="Review the listing, then either shortlist it, mark stronger interest, or move into contact."
+        description="Review the listing, then either shortlist it, mark stronger interest, or message the tenants directly."
         showBackButton={false}
         actions={[
           { label: "Interested houses", onClick: onOpenSaved },
-          { label: canOpenChat ? "Open group chat" : "Send intro", onClick: canOpenChat ? onOpenChat : onOpenIntro, tone: "primary" }
+          { label: contactLabel, onClick: handleContactAction, tone: "primary" }
         ]}
       />
 
-      <section className="summary-panel detail-hero-panel">
-        <img className="detail-hero-image" src={heroPhoto.src} alt={heroPhoto.alt} loading="lazy" />
-        <div className="detail-gallery">
-          {galleryPhotos.map((photo) => (
-            <img key={photo.alt} className="detail-gallery-image" src={photo.src} alt={photo.alt} loading="lazy" />
-          ))}
+      <PhotoCarousel photos={detail.photos} title={match.roomTitle} />
+
+      <section className="summary-panel">
+        <div className="panel-headline">
+          <div>
+            <p className="panel-kicker">Current tenants</p>
+            <h2>{detail.currentOccupants}</h2>
+          </div>
+          <span className="match-score-pill">{match.score}% fit</span>
         </div>
-      </section>
 
-      <div className="summary-grid">
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">Listing overview</p>
-              <h2>{formatPrice(match.monthlyRent)} / month</h2>
+        <div className="detail-tenant-layout">
+          <div className="tenant-spotlight">
+            <div className="tenant-avatar" aria-hidden="true">
+              {match.roommate.name
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)}
             </div>
-            <span className="match-score-pill">{match.score}% fit</span>
-          </div>
-
-          <p>{detail.summary}</p>
-          <p className="listing-subcopy">{detail.roomDescription}</p>
-
-          <div className="detail-stats-grid">
-            <article className="detail-card"><strong>Neighborhood</strong><span>{match.neighborhood}</span></article>
-            <article className="detail-card"><strong>Move-in</strong><span>{formatMoveIn(match.moveIn)}</span></article>
-            <article className="detail-card"><strong>Lease</strong><span>{match.leaseLength}</span></article>
-            <article className="detail-card"><strong>Commute</strong><span>{match.commuteMinutes} minutes</span></article>
-            <article className="detail-card"><strong>Bedrooms</strong><span>{detail.bedrooms}</span></article>
-            <article className="detail-card"><strong>Bathrooms</strong><span>{detail.bathrooms}</span></article>
-            <article className="detail-card"><strong>Deposit</strong><span>{formatPrice(detail.deposit)}</span></article>
-            <article className="detail-card"><strong>Room size</strong><span>{detail.roomSize}</span></article>
-            <article className="detail-card detail-card-wide"><strong>Bills</strong><span>{detail.bills}</span></article>
-            <article className="detail-card detail-card-wide"><strong>Availability</strong><span>{detail.availableFromNote}</span></article>
-          </div>
-
-          <div className="panel-headline inline-headline">
-            <div>
-              <p className="panel-kicker">Amenities</p>
-            </div>
-          </div>
-          <div className="tag-preview">
-            {match.amenities.map((amenity) => (
-              <span key={amenity} className="tag-chip">{amenity}</span>
-            ))}
-          </div>
-        </section>
-
-        <section className="summary-panel">
-          <div className="panel-headline">
-            <div>
-              <p className="panel-kicker">House fit</p>
-              <h2>{match.roommate.name}</h2>
+            <div className="tenant-spotlight-copy">
+              <h3>{match.roommate.name}</h3>
+              <p className="listing-meta">{match.roommate.age} years old | {match.roommate.major}</p>
+              <p className="flatmate-summary">{match.roommate.vibe}</p>
+              <p>{match.roommate.bio}</p>
             </div>
           </div>
 
-          <p>{match.roommate.bio}</p>
-          <p className="listing-meta">{match.roommate.age} years old • {match.roommate.major}</p>
-          <p className="listing-subcopy">{detail.currentOccupants}</p>
+          <div className="detail-inline-stack">
+            <div className="occupancy-row">
+              <div className="occupancy-icons" aria-hidden="true">
+                {Array.from({ length: Math.min(Math.max(occupantCount, 1), 3) }).map((_, index) => (
+                  <span key={`${match.id}-detail-occupant-${index}`} />
+                ))}
+              </div>
+              <span>{detail.currentOccupants} already living here</span>
+            </div>
 
-          <div className="detail-section-grid">
             <div className="detail-text-block">
               <p className="panel-kicker">Why this match</p>
               <ul className="bullet-list">
@@ -133,30 +114,92 @@ function MatchDetailPage({
             </div>
 
             <div className="detail-text-block">
-              <p className="panel-kicker">House highlights</p>
+              <p className="panel-kicker">House vibe</p>
               <ul className="bullet-list">
                 {detail.houseHighlights.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="detail-text-block">
-              <p className="panel-kicker">House rules</p>
-              <ul className="bullet-list">
-                {detail.houseRules.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
+      <section className="summary-panel">
+        <div className="panel-headline">
+          <div>
+            <p className="panel-kicker">Bills & pricing</p>
+            <h2>{formatPerPersonMonthly(match.monthlyRent)}</h2>
+          </div>
+        </div>
 
-            <div className="detail-text-block">
-              <p className="panel-kicker">Neighborhood notes</p>
-              <ul className="bullet-list">
-                {detail.neighborhoodNotes.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+        <div className="detail-stats-grid">
+          <article className="detail-card"><strong>Neighborhood</strong><span>{match.neighborhood}</span></article>
+          <article className="detail-card"><strong>Move-in</strong><span>{formatMoveIn(match.moveIn)}</span></article>
+          <article className="detail-card"><strong>Lease</strong><span>{match.leaseLength}</span></article>
+          <article className="detail-card"><strong>Commute</strong><span>{match.commuteMinutes} minutes</span></article>
+          <article className="detail-card"><strong>Deposit</strong><span>{formatPrice(detail.deposit)}</span></article>
+          <article className="detail-card"><strong>Bills</strong><span>{detail.bills}</span></article>
+          <article className="detail-card"><strong>Room size</strong><span>{detail.roomSize}</span></article>
+          <article className="detail-card"><strong>Availability</strong><span>{detail.availableFromNote}</span></article>
+        </div>
+
+        <div className="panel-headline inline-headline">
+          <div>
+            <p className="panel-kicker">Amenities</p>
+          </div>
+        </div>
+        <div className="tag-preview">
+          {match.amenities.map((amenity) => (
+            <span key={amenity} className="tag-chip">{amenity}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="summary-panel">
+        <div className="panel-headline">
+          <div>
+            <p className="panel-kicker">House rules</p>
+            <h2>Expectations before move-in</h2>
+          </div>
+        </div>
+
+        <ul className="bullet-list single-column-list">
+          {detail.houseRules.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="summary-panel">
+        <div className="panel-headline">
+          <div>
+            <p className="panel-kicker">Extended details</p>
+            <h2>Everything else worth knowing</h2>
+          </div>
+        </div>
+
+        <div className="detail-section-grid">
+          <div className="detail-text-block">
+            <p className="panel-kicker">Room description</p>
+            <p>{detail.roomDescription}</p>
+          </div>
+
+          <div className="detail-text-block">
+            <p className="panel-kicker">Neighborhood notes</p>
+            <ul className="bullet-list">
+              {detail.neighborhoodNotes.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="detail-text-block">
+            <p className="panel-kicker">Ideal for</p>
+            <div className="tag-preview">
+              {detail.idealFor.map((item) => (
+                <span key={item} className="tag-chip">{item}</span>
+              ))}
             </div>
           </div>
 
@@ -164,23 +207,14 @@ function MatchDetailPage({
             <p className="panel-kicker">Owner note</p>
             <p>{detail.ownerNote}</p>
           </div>
-
-          <div className="tag-preview">
-            {detail.idealFor.map((item) => (
-              <span key={item} className="tag-chip">{item}</span>
-            ))}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <div className="button-row detail-action-footer">
         <div className="button-row compact-actions detail-action-group">
           <button type="button" className="secondary-button" onClick={onSave}>Save</button>
-          <button type="button" className="secondary-button" disabled={!canOpenChat} onClick={onOpenChat}>
-            {canOpenChat ? "Open group chat" : "Send intro to unlock chat"}
-          </button>
           <button type="button" className="secondary-button" onClick={onLike}>Like</button>
-          <button type="button" className="primary-button" onClick={onOpenIntro}>Send intro</button>
+          <button type="button" className="primary-button" onClick={handleContactAction}>{contactLabel}</button>
         </div>
       </div>
     </section>

@@ -77,18 +77,18 @@ type JourneyMode = "renter" | "owner";
 
 const emptyStatus: StatusState = { kind: "idle", message: "" };
 const renterNavItems = [
-  { id: "browseListings", label: "Browse", badge: "HO" },
-  { id: "suggestions", label: "Matches", badge: "MT" },
-  { id: "savedList", label: "Interested", badge: "SV" },
-  { id: "groupChat", label: "Chats", badge: "GC" },
-  { id: "profile", label: "Profile", badge: "ME" }
+  { id: "browseListings", label: "Listings", icon: "house" },
+  { id: "suggestions", label: "Matches", icon: "spark" },
+  { id: "savedList", label: "Saved", icon: "bookmark" },
+  { id: "groupChat", label: "Chats", icon: "chat" },
+  { id: "profile", label: "Profile", icon: "profile" }
 ] as const;
 const ownerNavItems = [
-  { id: "ownerListing", label: "Listing", badge: "RM" },
-  { id: "ownerSuggestions", label: "Matches", badge: "MT" },
-  { id: "ownerSavedList", label: "Saved", badge: "SV" },
-  { id: "ownerGroupChat", label: "Chats", badge: "GC" },
-  { id: "ownerProfile", label: "Profile", badge: "ME" }
+  { id: "ownerListing", label: "Listing", icon: "house" },
+  { id: "ownerSuggestions", label: "Matches", icon: "spark" },
+  { id: "ownerSavedList", label: "Saved", icon: "bookmark" },
+  { id: "ownerGroupChat", label: "Chats", icon: "chat" },
+  { id: "ownerProfile", label: "Profile", icon: "profile" }
 ] as const;
 const onboardingHeaderItems = [
   { id: "account", label: "Account" },
@@ -819,7 +819,7 @@ function App() {
     setScreen("quiz");
     setStatus({
       kind: "success",
-      message: `${privacyLevelMeta.questionCount} privacy questions are queued for this profile.`
+      message: `${privacyLevelMeta.summaryLabel} selected. ${privacyLevelMeta.questionCount} privacy questions are queued for this profile.`
     });
   }
 
@@ -859,14 +859,20 @@ function App() {
     }
   }
 
-  function handleTextSubmit() {
+  function handleTextSubmit(nextValue?: string) {
     if (currentQuestion.type !== "text") {
       return;
     }
 
-    if (!profileNotes[currentQuestion.field].trim()) {
+    const finalValue = nextValue ?? profileNotes[currentQuestion.field];
+
+    if (!finalValue.trim()) {
       setStatus({ kind: "error", message: "Add at least one item before moving to the next card." });
       return;
+    }
+
+    if (finalValue !== profileNotes[currentQuestion.field]) {
+      setProfileNotes((current) => ({ ...current, [currentQuestion.field]: finalValue }));
     }
 
     if (safeQuestionIndex >= totalQuestions - 1) {
@@ -1486,7 +1492,11 @@ function App() {
         return (
           <BrowseListingsPage
             matches={filteredMatches}
+            filters={filters}
             onBackToBranch={() => setScreen("pathChoice")}
+            onChangeBudget={(value) => updateFilters("maxRent", value)}
+            onChangeCommute={(value) => updateFilters("maxCommute", value)}
+            onChangePetFriendly={(value) => updateFilters("petFriendly", value)}
             onOpenFilters={() => setScreen("filters")}
             onOpenSuggestions={() => setScreen("suggestions")}
             onOpenMatch={(matchId) => openMatchDetail(matchId, "browseListings")}
@@ -1696,13 +1706,7 @@ function App() {
 
       {showPrimaryNav ? (
         <BottomNav
-          items={
-            (journeyMode === "owner" ? ownerNavItems : renterNavItems) as unknown as Array<{
-              id: string;
-              label: string;
-              badge: string;
-            }>
-          }
+          items={journeyMode === "owner" ? [...ownerNavItems] : [...renterNavItems]}
           activeId={journeyMode === "owner" ? activeOwnerNav : activeRenterNav}
           onSelect={journeyMode === "owner" ? handleOwnerNavSelect : handleRenterNavSelect}
         />

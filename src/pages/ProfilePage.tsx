@@ -108,7 +108,7 @@ function ProfilePage({
         <div className="summary-tags">
           <span>Need a room</span>
           <span>{answeredCount} answers</span>
-          <span>{privacyLevelMeta.title} privacy</span>
+          <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{savedCount} interested houses</span>
           <span>{contactedCount} intros sent</span>
         </div>
@@ -133,7 +133,7 @@ function ProfilePage({
           id="account"
           kicker="Account"
           title={account.fullName}
-          summary={`${account.email} | ${privacyLevelMeta.title} privacy | ${savedCount} saved houses`}
+          summary={`${account.email} | ${privacyLevelMeta.summaryLabel} | ${savedCount} saved houses`}
           isOpen={expandedSection === "account"}
           onToggle={toggleSection}
         >
@@ -155,7 +155,7 @@ function ProfilePage({
               <span>{account.idCheckChoice === "include" ? "Included" : "Skipped"}</span>
             </article>
             <article className="detail-card detail-card-wide">
-              <strong>Privacy setup</strong>
+              <strong>Profile visibility</strong>
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
             </article>
           </div>

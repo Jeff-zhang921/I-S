@@ -29,10 +29,10 @@ function VerifyPage({
 
         <div className="hero-pane-copy">
           <p className="eyebrow">Page 2 of 10</p>
-          <h1>Lock the trust layer before matching goes live.</h1>
+          <h1>Set trust and visibility before matching goes live.</h1>
           <p className="lede">
-            Verification decides how much confidence the feed can project. Code delivery, privacy
-            depth, and ID checks combine into one visible trust signal.
+            This step explains how visible the profile will be before the questionnaire starts. Code delivery,
+            visibility, and ID checks combine into one clear trust setup.
           </p>
         </div>
 
@@ -45,11 +45,11 @@ function VerifyPage({
         <div className="hero-grid hero-grid-epic hero-grid-verify">
           <article className="hero-card">
             <strong>Trust controls</strong>
-            <p>Pick how the user proves they are real before the questionnaire shapes their profile.</p>
+            <p>Pick how the renter proves they are real before the questionnaire shapes the profile.</p>
           </article>
           <article className="hero-card">
-            <strong>Privacy depth</strong>
-            <p>More privacy questions create a richer picture of boundaries, routines, and comfort.</p>
+            <strong>Visibility impact</strong>
+            <p>Each visibility option tells the user who can see the profile and how much screening happens first.</p>
           </article>
         </div>
 
@@ -71,7 +71,7 @@ function VerifyPage({
           <div className="panel-head">
             <p className="panel-kicker">Verify identity</p>
             <h2>Confirm the account signal</h2>
-            <p className="verify-support-copy">Choose the delivery method, privacy level, and optional ID check before the survey starts.</p>
+            <p className="verify-support-copy">Choose the code delivery method, the profile visibility setting, and the optional ID check before the survey starts.</p>
           </div>
 
           <form className="stack-form verify-form" onSubmit={onSubmit} noValidate>
@@ -97,8 +97,8 @@ function VerifyPage({
               </div>
 
               <div className="panel-head compact-head">
-                <p className="panel-kicker">Privacy level</p>
-                <p className="verify-support-copy">This controls how many privacy questions appear later in onboarding.</p>
+                <p className="panel-kicker">Profile visibility</p>
+                <p className="verify-support-copy">Pick the option that best matches how early you want your profile details to appear.</p>
               </div>
 
               <div className="privacy-level-row verify-privacy-row">
@@ -111,7 +111,7 @@ function VerifyPage({
                   >
                     <strong>{option.title}</strong>
                     <span>{option.description}</span>
-                    <small>{option.questionCount} privacy questions</small>
+                    <small>{option.questionCount} screening questions in onboarding</small>
                   </button>
                 ))}
               </div>

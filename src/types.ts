@@ -64,6 +64,7 @@ export type TextQuestion = BaseQuestion & {
   field: ProfileField;
   placeholder: string;
   buttonLabel: string;
+  suggestions?: string[];
 };
 
 export type Question = ScaleQuestion | TextQuestion;
@@ -88,6 +89,7 @@ export type StarterAccount = {
 export type PrivacyLevelOption = {
   value: PrivacyLevel;
   title: string;
+  summaryLabel: string;
   description: string;
   questionCount: number;
 };

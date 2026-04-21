@@ -167,21 +167,23 @@ export const questionBank: Question[] = [
     id: "must_haves_text",
     category: "dealbreakers",
     prompt: "Type the must-haves you want attached to your profile.",
-    hint: "Use commas or short lines such as quiet nights, natural light, short commute.",
+    hint: "Add one item at a time. Press Enter to turn each must-have into a tag on your profile.",
     type: "text",
     field: "mustHaves",
     placeholder: "quiet after 10pm, clean kitchen, near Temple Meads",
-    buttonLabel: "Save must-haves"
+    buttonLabel: "Save must-haves",
+    suggestions: ["Non-smoker", "Quiet after 10 PM", "Dog friendly", "Short commute", "Clean kitchen"]
   },
   {
     id: "dealbreakers_text",
     category: "dealbreakers",
     prompt: "Type the dealbreakers you want attached to your profile.",
-    hint: "These go directly into the profile so bad fits can filter out earlier.",
+    hint: "Add one item at a time so bad fits can filter out earlier.",
     type: "text",
     field: "dealbreakers",
     placeholder: "smoking indoors, unpaid rent, surprise overnight guests",
-    buttonLabel: "Save dealbreakers"
+    buttonLabel: "Save dealbreakers",
+    suggestions: ["Smoking indoors", "Noisy late nights", "Unpaid rent history", "Surprise overnight guests", "Messy shared spaces"]
   },
   {
     id: "visibility_comfort",
@@ -244,20 +246,23 @@ export const scaleChoices: ScaleChoice[] = [
 export const privacyLevelOptions: PrivacyLevelOption[] = [
   {
     value: "open",
-    title: "Open",
-    description: "Shorter privacy section focused on visibility comfort and core safety tools.",
+    title: "Visible to Everyone",
+    summaryLabel: "Open visibility",
+    description: "Your full profile appears in the feed right away so people can message sooner. Includes 2 quick privacy questions only.",
     questionCount: 2
   },
   {
     value: "balanced",
-    title: "Balanced",
-    description: "Medium privacy section with verified messaging and profile-sharing control.",
+    title: "Visible to Matches Only",
+    summaryLabel: "Matches only",
+    description: "Your profile opens once there is clear interest, which gives you more control before details are shared. Includes 4 privacy questions.",
     questionCount: 4
   },
   {
     value: "private",
-    title: "Private",
-    description: "Longest privacy section with tighter visibility and gated profile controls.",
+    title: "Visible After You Choose to Connect",
+    summaryLabel: "Screen first",
+    description: "Most details stay hidden until you decide to reach out, which keeps the early feed lighter on personal info. Includes 5 privacy questions.",
     questionCount: 5
   }
 ];

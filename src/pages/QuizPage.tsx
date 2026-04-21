@@ -1,3 +1,5 @@
+import { useState } from "react";
+import ChipInputField from "../components/ChipInputField";
 import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
 import SwipeScalePicker from "../components/SwipeScalePicker";
@@ -34,7 +36,7 @@ type QuizPageProps = {
   onScaleCommit: (value: number) => void;
   onBack: () => void;
   onTextChange: <K extends keyof ProfileNotesState>(field: K, value: ProfileNotesState[K]) => void;
-  onTextSubmit: () => void;
+  onTextSubmit: (nextValue?: string) => void;
   isQuestionAnswered: (question: Question) => boolean;
 };
 
@@ -62,10 +64,73 @@ function QuizPage({
   onTextSubmit,
   isQuestionAnswered
 }: QuizPageProps) {
+  const [tagDrafts, setTagDrafts] = useState<ProfileNotesState>({ mustHaves: "", dealbreakers: "" });
   const currentTextValue = currentQuestion.type === "text" ? profileNotes[currentQuestion.field] : "";
+  const currentTextDraft = currentQuestion.type === "text" ? tagDrafts[currentQuestion.field] : "";
   const textItems = currentQuestion.type === "text" ? parseProfileList(currentTextValue) : [];
   const previewTextItems = textItems.slice(0, 3);
   const hiddenTextItemsCount = Math.max(textItems.length - previewTextItems.length, 0);
+
+  function buildNextTextValue(rawValue: string) {
+    if (currentQuestion.type !== "text") {
+      return "";
+    }
+
+    const item = rawValue.trim().replace(/,+$/, "");
+    if (!item) {
+      return currentTextValue;
+    }
+
+    const nextItems = [...textItems];
+    if (!nextItems.some((existingItem) => existingItem.toLowerCase() === item.toLowerCase())) {
+      nextItems.push(item);
+    }
+
+    return nextItems.join("\n");
+  }
+
+  function handleAddChip(rawValue: string) {
+    if (currentQuestion.type !== "text") {
+      return;
+    }
+
+    const trimmedValue = rawValue.trim().replace(/,+$/, "");
+    const nextValue = buildNextTextValue(rawValue);
+    if (nextValue === currentTextValue) {
+      if (trimmedValue) {
+        setTagDrafts((current) => ({ ...current, [currentQuestion.field]: "" }));
+      }
+      return;
+    }
+
+    onTextChange(currentQuestion.field, nextValue);
+    setTagDrafts((current) => ({ ...current, [currentQuestion.field]: "" }));
+  }
+
+  function handleRemoveChip(item: string) {
+    if (currentQuestion.type !== "text") {
+      return;
+    }
+
+    const nextItems = textItems.filter((existingItem) => existingItem !== item);
+    onTextChange(currentQuestion.field, nextItems.join("\n"));
+  }
+
+  function handleSubmitTextQuestion() {
+    if (currentQuestion.type !== "text") {
+      return;
+    }
+
+    const trimmedDraft = currentTextDraft.trim();
+    const nextValue = trimmedDraft ? buildNextTextValue(trimmedDraft) : currentTextValue;
+
+    if (trimmedDraft) {
+      onTextChange(currentQuestion.field, nextValue);
+      setTagDrafts((current) => ({ ...current, [currentQuestion.field]: "" }));
+    }
+
+    onTextSubmit(nextValue);
+  }
 
   return (
     <section className="screen quiz-screen quiz-screen-fixed">
@@ -75,7 +140,7 @@ function QuizPage({
         <p className="eyebrow">Page 3 of 10</p>
         <h1>Answer one card at a time.</h1>
         <p className="lede">
-          The onboarding stays focused and sequential. Privacy is set to {privacyLevelMeta.title.toLowerCase()}, so this version has {totalQuestions} questions total.
+          The onboarding stays focused and sequential. Visibility is set to {privacyLevelMeta.summaryLabel.toLowerCase()}, so this version has {totalQuestions} questions total.
         </p>
 
         <div className="progress-card">
@@ -115,7 +180,7 @@ function QuizPage({
         </ul>
 
         <div className="scale-note">
-          <span>{privacyLevelMeta.title} privacy</span>
+          <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{privacyLevelMeta.questionCount} privacy questions</span>
         </div>
       </aside>
@@ -136,7 +201,7 @@ function QuizPage({
               {questionIndex + 1}/{totalQuestions}
             </strong>
             <span>
-              {answeredCount} answered | {privacyLevelMeta.title} privacy
+              {answeredCount} answered | {privacyLevelMeta.summaryLabel}
             </span>
           </div>
 
@@ -177,16 +242,19 @@ function QuizPage({
               />
             ) : (
               <div className="text-card-flow">
-                <label className="text-card-label">
-                  Add profile notes
-                  <textarea
-                    className="question-textarea question-textarea-compact"
-                    rows={3}
-                    placeholder={currentQuestion.placeholder}
-                    value={currentTextValue}
-                    onChange={(event) => onTextChange(currentQuestion.field, event.target.value)}
-                  />
-                </label>
+                <ChipInputField
+                  label="Add profile notes"
+                  placeholder={currentQuestion.placeholder}
+                  helperText="Press Enter to add each item. Suggestions below can be tapped straight into your profile."
+                  items={textItems}
+                  draftValue={currentTextDraft}
+                  suggestions={currentQuestion.suggestions}
+                  onDraftChange={(value) =>
+                    setTagDrafts((current) => ({ ...current, [currentQuestion.field]: value }))
+                  }
+                  onAddItem={handleAddChip}
+                  onRemoveItem={handleRemoveChip}
+                />
 
                 <div className="tag-preview quiz-tag-preview">
                   {textItems.length ? (
@@ -214,7 +282,7 @@ function QuizPage({
             {currentQuestion.type === "scale" ? (
               <p className="inline-note">Tap 1-5 or drag the slider. The next card opens immediately.</p>
             ) : (
-              <button type="button" className="primary-button" onClick={onTextSubmit}>
+              <button type="button" className="primary-button" onClick={handleSubmitTextQuestion}>
                 {currentQuestion.buttonLabel}
               </button>
             )}

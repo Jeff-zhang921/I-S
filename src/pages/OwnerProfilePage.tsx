@@ -93,7 +93,7 @@ function OwnerProfilePage({
 
         <div className="summary-tags">
           <span>Have a room</span>
-          <span>{privacyLevelMeta.title} privacy</span>
+          <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{savedCount} shortlisted renters</span>
           <span>{contactedCount} intros sent</span>
         </div>

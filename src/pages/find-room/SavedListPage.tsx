@@ -1,8 +1,8 @@
-﻿import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPrice } from "../../lib/findRoom";
-import { ScoredRoomMatch } from "../../types";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
+import { roomDetailById } from "../../data/roomDetails";
+import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
+import { ScoredRoomMatch } from "../../types";
 
 type SavedListPageProps = {
   savedMatches: ScoredRoomMatch[];
@@ -33,14 +33,14 @@ function SavedListPage({
         <p className="eyebrow">Interested houses</p>
         <h1>Saved, liked, and contacted houses.</h1>
         <p className="lede">
-          Save keeps a house here. Like marks stronger interest. Sending an intro unlocks the house group chat.
+          Save keeps a house here. Like marks stronger interest. Saying you are interested unlocks the tenant conversation.
         </p>
       </div>
 
       <ScreenFlowNav
         eyebrow="Renter flow"
         title="Interested houses"
-        description="Go back to matching, reopen a saved room, or jump into the chats that already have an intro."
+        description="Go back to matching, reopen a saved room, or jump into the chats that already have a first message."
         showBackButton={false}
         actions={[
           { label: "Open chats", onClick: onOpenChatsHome, tone: "primary", disabled: contactedCount === 0 }
@@ -52,6 +52,7 @@ function SavedListPage({
           {savedMatches.map((match) => {
             const detail = roomDetailById[match.id];
             const coverPhoto = detail.photos[0];
+            const occupantCount = getOccupantCount(detail.currentOccupants);
             const isLiked = likedIds.includes(match.id);
             const isContacted = contactedIds.includes(match.id);
 
@@ -74,13 +75,26 @@ function SavedListPage({
                 <div className="listing-top">
                   <div>
                     <h3>{match.roomTitle}</h3>
-                    <p className="listing-meta">{match.neighborhood} • {formatPrice(match.monthlyRent)} / month</p>
+                    <p className="listing-meta">{match.neighborhood} | {formatPerPersonMonthly(match.monthlyRent)}</p>
                   </div>
-                  <span className="tag-chip">{isContacted ? "Intro sent" : isLiked ? "Liked" : "Saved"}</span>
+                  <span className="tag-chip">{isContacted ? "Contacted" : isLiked ? "Liked" : "Saved"}</span>
                 </div>
 
                 <p>{detail.summary}</p>
-                <p className="listing-subcopy">{match.roommate.name} • {match.roommate.vibe}</p>
+
+                <div className="listing-preview-meta">
+                  <div className="occupancy-row">
+                    <div className="occupancy-icons" aria-hidden="true">
+                      {Array.from({ length: Math.min(Math.max(occupantCount, 1), 3) }).map((_, index) => (
+                        <span key={`${match.id}-saved-occupant-${index}`} />
+                      ))}
+                    </div>
+                    <span>{detail.currentOccupants}</span>
+                  </div>
+                  <span className="listing-subcopy">{detail.roomSize}</span>
+                </div>
+
+                <p className="flatmate-summary">{match.roommate.name} | {match.roommate.vibe}</p>
 
                 <div className="listing-facts">
                   <span>Move-in {formatMoveIn(match.moveIn)}</span>
@@ -109,7 +123,7 @@ function SavedListPage({
                       onOpenChat(match.id);
                     }}
                   >
-                    {isContacted ? "Group chat" : "Send intro to unlock chat"}
+                    {isContacted ? "Message tenants" : "I'm interested first"}
                   </button>
                 </div>
               </article>

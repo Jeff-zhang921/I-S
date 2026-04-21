@@ -93,10 +93,14 @@ test.describe("Roommate Match UI audit", () => {
         const previousPrompt = (await prompt.textContent())?.trim() ?? "";
 
         if (await isVisible(/Save must-haves/i)) {
-          await page.locator("textarea").fill("quiet nights, clean kitchen, walkable commute");
+          const chipInput = page.locator(".chip-input").first();
+          await chipInput.fill("quiet nights");
+          await chipInput.press("Enter");
           await page.getByRole("button", { name: /Save must-haves/i }).click();
         } else if (await isVisible(/Save dealbreakers/i)) {
-          await page.locator("textarea").fill("indoor smoking, unpaid rent, surprise guests");
+          const chipInput = page.locator(".chip-input").first();
+          await chipInput.fill("indoor smoking");
+          await chipInput.press("Enter");
           await page.getByRole("button", { name: /Save dealbreakers/i }).click();
         } else {
           const chips = page.locator(".swipe-scale-chip");
@@ -161,7 +165,7 @@ test.describe("Roommate Match UI audit", () => {
       await capture("08-renter-suggestions");
 
       await page.locator(".suggestion-card").first().click();
-      await expect(page.locator(".detail-hero-panel")).toBeVisible();
+      await expect(page.locator(".detail-carousel-panel")).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
       await capture("09-renter-match-detail");
 
@@ -178,17 +182,17 @@ test.describe("Roommate Match UI audit", () => {
       await page.getByRole("button", { name: /Back to suggestions/i }).click();
       await expect(page.getByRole("heading", { name: /Suggested rooms and roommates/i })).toBeVisible();
       await page.locator(".suggestion-card").first().click();
-      await expect(page.getByRole("button", { name: /Send intro to unlock chat/i })).toBeDisabled();
+      await expect(page.locator(".detail-action-footer").getByRole("button", { name: /I'm interested/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
       await capture("11-renter-match-detail-liked");
 
       await page.getByRole("button", { name: /^Like$/i }).click();
-      await page.locator(".detail-action-footer").getByRole("button", { name: /^Send intro$/i }).click();
-      await expect(page.getByRole("heading", { name: /Send intro or quick questions/i })).toBeVisible();
+      await page.locator(".detail-action-footer").getByRole("button", { name: /I'm interested/i }).click();
+      await expect(page.getByRole("heading", { name: /Tell the tenants you are interested/i })).toBeVisible();
       await expectTopBack(/Back to room detail/i);
       await capture("12-renter-send-intro");
 
-      await page.locator(".send-intro-screen > .button-row").getByRole("button", { name: /^Send intro$/i }).click();
+      await page.locator(".send-intro-screen > .button-row").getByRole("button", { name: /^Message tenants$/i }).click();
       await expect(page.locator(".chat-thread-body")).toBeVisible();
       await expectTopBack(/Back to chats/i);
       await capture("13-renter-chat-thread");
@@ -198,7 +202,7 @@ test.describe("Roommate Match UI audit", () => {
       await expectTopBack(/Back to interested houses/i);
       await capture("14-renter-group-chat");
 
-      await page.locator(".bottom-nav").getByRole("button", { name: /^Interested$/i }).click();
+      await page.locator(".bottom-nav").getByRole("button", { name: /^Saved$/i }).click();
       await expect(page.getByRole("heading", { name: /Saved, liked, and contacted houses/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
       await capture("15-renter-saved-list");

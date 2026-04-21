@@ -44,20 +44,20 @@ function SendIntroPage({
 
       <div className="summary-hero">
         <p className="eyebrow">Page 10 of 10</p>
-        <h1>Send intro or quick questions.</h1>
+        <h1>Tell the tenants you are interested.</h1>
         <p className="lede">
-          This is the contact step. Send an intro to {match.roommate.name} about {match.roomTitle} to open the house chat.
+          This is the contact step. Send the first message to {match.roommate.name} about {match.roomTitle} to open the house chat.
         </p>
       </div>
 
       <ScreenFlowNav
         eyebrow="Renter flow"
-        title="Intro outreach"
-        description="Return to the previous stage or reopen the room detail before you send the first message."
+        title="First message"
+        description="Return to the previous stage or reopen the room detail before you message the current tenants."
         showBackButton={false}
         actions={[
           { label: "Room detail", onClick: onOpenMatch },
-          { label: "Send intro", onClick: onSend, tone: "primary" }
+          { label: "Message tenants", onClick: onSend, tone: "primary" }
         ]}
       />
 
@@ -65,7 +65,7 @@ function SendIntroPage({
         <section className="summary-panel">
           <div className="panel-headline">
             <div>
-              <p className="panel-kicker">Intro message</p>
+              <p className="panel-kicker">First message</p>
               <h2>Compose outreach</h2>
             </div>
           </div>
@@ -98,14 +98,14 @@ function SendIntroPage({
           </div>
 
           <p className="inline-note">
-            The intro is frontend-only, so sending marks the match as contacted and opens the fake house group chat.
+            This is frontend-only, so sending marks the match as contacted and opens the fake house group chat.
           </p>
         </section>
       </div>
 
       <div className="button-row">
         <button type="button" className="primary-button" onClick={onSend}>
-          Send intro
+          Message tenants
         </button>
       </div>
     </section>

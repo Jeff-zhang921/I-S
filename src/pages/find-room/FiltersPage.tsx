@@ -1,3 +1,4 @@
+import { formatPerPersonMonthly } from "../../lib/findRoom";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { amenityOptions, petPolicyOptions } from "../../data/findRoom";
@@ -21,7 +22,7 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
         <p className="eyebrow">Page 7 of 10</p>
         <h1>Set filters before matching.</h1>
         <p className="lede">
-          These are the practical controls from the renter branch: price, commute, pet policy, and property features.
+          Budget stays at the top because it is the strongest early decision. Adjust commute, pet setup, and features underneath it.
         </p>
       </div>
 
@@ -37,14 +38,14 @@ function FiltersPage({ filters, resultCount, onChange, onToggleAmenity, onBack, 
         <article className="summary-panel">
           <div className="panel-headline">
             <div>
-              <p className="panel-kicker">Price</p>
+              <p className="panel-kicker">Budget</p>
               <h2>Budget and commute</h2>
             </div>
           </div>
 
           <div className="slider-group">
             <label className="slider-label">
-              Max rent: <strong>GBP{filters.maxRent}</strong>
+              Max budget: <strong>{formatPerPersonMonthly(filters.maxRent)}</strong>
               <input
                 type="range"
                 min="700"
