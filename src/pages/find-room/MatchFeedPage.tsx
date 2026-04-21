@@ -1,3 +1,4 @@
+import CommitmentBadge from "../../components/CommitmentBadge";
 import MatchInsights from "../../components/MatchInsights";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
@@ -85,7 +86,10 @@ function MatchFeedPage({
                 <h2>{currentMatch.roomTitle}</h2>
                 <p className="listing-meta">{currentMatch.neighborhood} | {formatPerPersonMonthly(currentMatch.monthlyRent)}</p>
               </div>
-              <div className="match-score-pill">{currentMatch.score}% fit</div>
+              <div className="detail-badge-stack">
+                <CommitmentBadge level={flatmateProfile.commitmentLevel} />
+                <div className="match-score-pill">{currentMatch.score}% fit</div>
+              </div>
             </div>
 
             <div className="listing-preview-meta">

@@ -1,5 +1,7 @@
+import CommitmentBadge from "../components/CommitmentBadge";
 import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
+import { describeCommitmentLevel } from "../lib/findRoom";
 import { describeCategoryScore } from "../lib/onboarding";
 import { CategoryMeta, PrivacyLevelOption, ProfileNotesState, StatusState } from "../types";
 
@@ -12,6 +14,7 @@ type SummaryPageProps = {
     fullName: string;
     email: string;
     phone: string;
+    commitmentLevel: "casual" | "active" | "ready";
     verificationMethod: string;
     idCheckChoice: string;
   };
@@ -49,6 +52,7 @@ function SummaryPage({
           <span>{answeredCount} answers</span>
           <span>{account.verificationMethod} verified</span>
           <span>{privacyLevelMeta.summaryLabel}</span>
+          <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
           <span>{account.idCheckChoice === "include" ? "ID check included" : "ID check skipped"}</span>
         </div>
 
@@ -104,6 +108,10 @@ function SummaryPage({
             <article className="detail-card">
               <strong>Profile visibility</strong>
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
+            </article>
+            <article className="detail-card">
+              <strong>Commitment level</strong>
+              <CommitmentBadge level={account.commitmentLevel} showDetail />
             </article>
             <article className="detail-card detail-card-wide">
               <strong>Must-haves</strong>

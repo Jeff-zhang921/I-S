@@ -1,3 +1,4 @@
+import CommitmentBadge from "../../components/CommitmentBadge";
 import MatchInsights from "../../components/MatchInsights";
 import PhotoCarousel from "../../components/PhotoCarousel";
 import RichFlatmateProfile from "../../components/RichFlatmateProfile";
@@ -10,6 +11,7 @@ import {
   formatMoveIn,
   formatPerPersonMonthly,
   formatPrice,
+  getFlatmateProfile,
   getListingMeta,
   getOccupantCount
 } from "../../lib/findRoom";
@@ -57,6 +59,7 @@ function MatchDetailPage({
   }
 
   const detail = roomDetailById[match.id];
+  const flatmateProfile = getFlatmateProfile(match.id);
   const listingMeta = getListingMeta(match.id);
   const occupantCount = getOccupantCount(detail.currentOccupants);
   const contactLabel = canOpenChat ? "Message tenants" : "I'm interested";
@@ -70,6 +73,12 @@ function MatchDetailPage({
         <p className="eyebrow">House details</p>
         <h1>{match.roomTitle}</h1>
         <p className="lede">Review the house, the current tenants, and the pricing breakdown before you decide whether to reach out.</p>
+        <div className="summary-tags">
+          <span>{formatPerPersonMonthly(match.monthlyRent)}</span>
+          <span>{detail.currentOccupants}</span>
+          <span>{listingMeta.houseType}</span>
+          <CommitmentBadge level={flatmateProfile.commitmentLevel} showDetail />
+        </div>
       </div>
 
       <ScreenFlowNav

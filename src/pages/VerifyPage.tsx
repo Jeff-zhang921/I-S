@@ -1,4 +1,6 @@
 import { FormEvent } from "react";
+import CommitmentSelector from "../components/CommitmentSelector";
+import PrivacySelector from "../components/PrivacySelector";
 import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
 import { AccountState, PrivacyLevelOption, StatusState } from "../types";
@@ -39,6 +41,7 @@ function VerifyPage({
         <div className="hero-signal-row">
           <span className="signal-pill">Code verification</span>
           <span className="signal-pill">Privacy tuning</span>
+          <span className="signal-pill">Move intent</span>
           <span className="signal-pill">Optional ID proof</span>
         </div>
 
@@ -71,7 +74,10 @@ function VerifyPage({
           <div className="panel-head">
             <p className="panel-kicker">Verify identity</p>
             <h2>Confirm the account signal</h2>
-            <p className="verify-support-copy">Choose the code delivery method, the profile visibility setting, and the optional ID check before the survey starts.</p>
+            <p className="verify-support-copy">
+              Choose the code delivery method, exactly who can see the profile, how serious the move is,
+              and whether to include an ID check before the survey starts.
+            </p>
           </div>
 
           <form className="stack-form verify-form" onSubmit={onSubmit} noValidate>
@@ -98,23 +104,29 @@ function VerifyPage({
 
               <div className="panel-head compact-head">
                 <p className="panel-kicker">Profile visibility</p>
-                <p className="verify-support-copy">Pick the option that best matches how early you want your profile details to appear.</p>
+                <p className="verify-support-copy">
+                  Pick the option that matches when you want other users to see your full profile and what changes in discovery.
+                </p>
               </div>
 
-              <div className="privacy-level-row verify-privacy-row">
-                {privacyLevelOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={account.privacyLevel === option.value ? "choice-card active" : "choice-card"}
-                    onClick={() => onChange("privacyLevel", option.value)}
-                  >
-                    <strong>{option.title}</strong>
-                    <span>{option.description}</span>
-                    <small>{option.questionCount} screening questions in onboarding</small>
-                  </button>
-                ))}
+              <PrivacySelector
+                options={privacyLevelOptions}
+                value={account.privacyLevel}
+                onChange={(value) => onChange("privacyLevel", value)}
+              />
+
+              <div className="panel-head compact-head">
+                <p className="panel-kicker">Commitment level</p>
+                <p className="verify-support-copy">
+                  Signal how serious you are about moving so other users can tell whether you are browsing,
+                  planning, or ready to act now.
+                </p>
               </div>
+
+              <CommitmentSelector
+                value={account.commitmentLevel}
+                onChange={(value) => onChange("commitmentLevel", value)}
+              />
 
               <label className="full-width">
                 Verification code

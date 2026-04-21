@@ -97,6 +97,15 @@ const onboardingHeaderItems = [
   { id: "summary", label: "Profile" },
   { id: "pathChoice", label: "Branch" }
 ] as const;
+const ONBOARDING_DRAFT_STORAGE_KEY = "ishare-onboarding-draft";
+
+type OnboardingDraftSnapshot = {
+  account: AccountState;
+  quizAnswers: QuizAnswers;
+  profileNotes: ProfileNotesState;
+  questionIndex: number;
+  savedAt: string;
+};
 
 function getRenterScreenLabel(screen: DetailReturnScreen | IntroBackScreen | RenterNavScreen | "filters") {
   switch (screen) {
@@ -175,6 +184,7 @@ function App() {
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({});
   const [profileNotes, setProfileNotes] = useState<ProfileNotesState>(initialProfileNotes);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [hasSavedOnboardingDraft, setHasSavedOnboardingDraft] = useState(false);
   const [status, setStatus] = useState<StatusState>(emptyStatus);
   const [filters, setFilters] = useState(defaultFilters);
   const [feedIndex, setFeedIndex] = useState(0);
@@ -305,6 +315,29 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      const rawDraft = window.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY);
+      if (!rawDraft) {
+        return;
+      }
+
+      const parsedDraft = JSON.parse(rawDraft) as OnboardingDraftSnapshot;
+      if (!parsedDraft?.account || !parsedDraft?.quizAnswers || !parsedDraft?.profileNotes) {
+        return;
+      }
+
+      setAccount(parsedDraft.account);
+      setQuizAnswers(parsedDraft.quizAnswers);
+      setProfileNotes(parsedDraft.profileNotes);
+      setQuestionIndex(parsedDraft.questionIndex ?? 0);
+      setHasSavedOnboardingDraft(true);
+      setStatus({ kind: "success", message: "Saved onboarding draft loaded. Resume when you are ready." });
+    } catch {
+      window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+    }
+  }, []);
+
   const activeQuestionBank = useMemo(
     () => questionBank.filter((question) => isQuestionVisible(question, account.privacyLevel)),
     [account.privacyLevel]
@@ -318,6 +351,10 @@ function App() {
     categoryMeta.find((category) => category.id === currentQuestion.category) ?? categoryMeta[0];
   const currentCategoryQuestions = activeQuestionBank.filter(
     (question) => question.category === currentQuestion.category
+  );
+  const currentCategoryIndex = Math.max(
+    categoryMeta.findIndex((category) => category.id === currentCategory.id),
+    0
   );
   const currentCategoryQuestionNumber =
     currentCategoryQuestions.findIndex((question) => question.id === currentQuestion.id) + 1;
@@ -510,8 +547,8 @@ function App() {
         };
       case "quiz":
         return {
-          title: currentCategory.title,
-          subtitle: `Question ${safeQuestionIndex + 1} of ${totalQuestions} in the compatibility survey.`
+          title: `Step ${currentCategoryIndex + 1}: ${currentCategory.title}`,
+          subtitle: `${Math.round(quizProgress)}% complete. Question ${currentCategoryQuestionNumber} of ${currentCategoryQuestions.length} in this section.`
         };
       case "summary":
         return {
@@ -533,17 +570,44 @@ function App() {
       ? "app-scene-owner"
       : "app-scene-renter";
 
+  function clearSavedOnboardingDraft() {
+    window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+    setHasSavedOnboardingDraft(false);
+  }
+
+  function saveOnboardingDraft(nextProfileNotes?: Partial<ProfileNotesState>) {
+    const mergedProfileNotes = nextProfileNotes
+      ? { ...profileNotes, ...nextProfileNotes }
+      : profileNotes;
+    const payload: OnboardingDraftSnapshot = {
+      account,
+      quizAnswers,
+      profileNotes: mergedProfileNotes,
+      questionIndex: safeQuestionIndex,
+      savedAt: new Date().toISOString()
+    };
+
+    window.localStorage.setItem(ONBOARDING_DRAFT_STORAGE_KEY, JSON.stringify(payload));
+    setHasSavedOnboardingDraft(true);
+
+    if (nextProfileNotes) {
+      setProfileNotes((current) => ({ ...current, ...nextProfileNotes }));
+    }
+  }
+
   function clearStatus() {
     setStatus(emptyStatus);
   }
 
   function resetPrototype() {
+    clearSavedOnboardingDraft();
     setScreen("account");
     setJourneyMode("renter");
     setAccount(initialAccountState);
     setQuizAnswers({});
     setProfileNotes(initialProfileNotes);
     setQuestionIndex(0);
+    setHasSavedOnboardingDraft(false);
     setStatus(emptyStatus);
     setFilters(defaultFilters);
     setFeedIndex(0);
@@ -674,6 +738,24 @@ function App() {
     );
 
     setQuestionIndex(firstUnansweredIndex === -1 ? Math.max(visibleQuestions.length - 1, 0) : firstUnansweredIndex);
+  }
+
+  function jumpToQuestionSection(categoryId: CategoryId) {
+    const visibleQuestions = getVisibleQuestionBank();
+    const sectionQuestions = visibleQuestions.filter((question) => question.category === categoryId);
+    if (!sectionQuestions.length) {
+      return;
+    }
+
+    const targetQuestion =
+      sectionQuestions.find((question) => !isQuestionAnswered(question, quizAnswers, profileNotes)) ??
+      sectionQuestions[0];
+    const nextIndex = visibleQuestions.findIndex((question) => question.id === targetQuestion.id);
+
+    if (nextIndex >= 0) {
+      setQuestionIndex(nextIndex);
+      clearStatus();
+    }
   }
 
   function addSavedMatch(matchId: string) {
@@ -822,6 +904,17 @@ function App() {
     setStatus({ kind: "success", message: "Starter account loaded. Continue when ready." });
   }
 
+  function handleResumeSavedDraft() {
+    setScreen("quiz");
+    setStatus({ kind: "success", message: "Resumed your saved onboarding draft." });
+  }
+
+  function handleSaveAndExit(nextProfileNotes?: Partial<ProfileNotesState>) {
+    saveOnboardingDraft(nextProfileNotes);
+    setScreen("account");
+    setStatus({ kind: "success", message: "Onboarding draft saved. Come back anytime and resume where you left off." });
+  }
+
   function handleAccountSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -860,6 +953,7 @@ function App() {
     clearStatus();
 
     if (safeQuestionIndex >= totalQuestions - 1) {
+      clearSavedOnboardingDraft();
       setScreen("summary");
       setStatus({ kind: "success", message: "Questionnaire complete. Review the renter profile." });
       return;
@@ -904,6 +998,7 @@ function App() {
     }
 
     if (safeQuestionIndex >= totalQuestions - 1) {
+      clearSavedOnboardingDraft();
       setScreen("summary");
       setStatus({ kind: "success", message: "Questionnaire complete. Review the renter profile." });
       return;
@@ -922,6 +1017,7 @@ function App() {
     }
 
     setScreen("pathChoice");
+    clearSavedOnboardingDraft();
     clearStatus();
   }
 
@@ -1278,7 +1374,9 @@ function App() {
             account={account}
             starters={starterAccounts}
             status={status}
+            hasSavedDraft={hasSavedOnboardingDraft}
             onUseStarter={handleUseStarter}
+            onResumeSavedDraft={handleResumeSavedDraft}
             onChange={updateAccount}
             onSubmit={handleAccountSubmit}
           />
@@ -1322,6 +1420,8 @@ function App() {
             status={status}
             onScaleCommit={handleScaleCommit}
             onBack={handleQuizBack}
+            onJumpToSection={jumpToQuestionSection}
+            onSaveAndExit={handleSaveAndExit}
             onTextChange={handleTextChange}
             onTextSubmit={handleTextSubmit}
             isQuestionAnswered={(question) => isQuestionAnswered(question, quizAnswers, profileNotes)}
@@ -1541,6 +1641,12 @@ function App() {
               setFilters((current) => ({
                 ...current,
                 amenities: toggleAmenity(current.amenities, amenity)
+              }))
+            }
+            onToggleCommitmentLevel={(commitmentLevel) =>
+              setFilters((current) => ({
+                ...current,
+                commitmentLevels: toggleStringFilter(current.commitmentLevels, commitmentLevel)
               }))
             }
             onToggleHouseType={(houseType) =>

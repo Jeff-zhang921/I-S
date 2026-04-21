@@ -1,4 +1,5 @@
-import { FiltersState, FlatmateProfile, HouseType, ListingMeta, RoommateMatch } from "../types";
+import { commitmentLevelOptions } from "./onboarding";
+import { CommitmentLevel, FiltersState, FlatmateProfile, HouseType, ListingMeta, RoommateMatch } from "../types";
 
 export const defaultFilters: FiltersState = {
   minRent: 700,
@@ -14,6 +15,7 @@ export const defaultFilters: FiltersState = {
   professionalsOnly: false,
   quietHouse: false,
   socialHouse: false,
+  commitmentLevels: [],
   amenities: []
 };
 
@@ -53,6 +55,13 @@ export const lifestyleFilterOptions = [
   { field: "quietHouse", label: "Quiet house" },
   { field: "socialHouse", label: "Social house" }
 ] as const;
+
+export const commitmentLevelFilterOptions: Array<{ value: CommitmentLevel; label: string; detail: string }> =
+  commitmentLevelOptions.map((option) => ({
+    value: option.value,
+    label: option.title,
+    detail: option.shortLabel
+  }));
 
 export const roomMatches: RoommateMatch[] = [
   {
@@ -483,84 +492,96 @@ export const flatmateProfilesByMatchId: Record<string, FlatmateProfile> = {
     courseOrJob: "Computer Science student",
     interests: ["Meal prep", "Pilates", "Indie playlists", "Weekend markets"],
     habits: { cleanliness: 5, sleep: 5, noise: 2 },
-    lookingFor: "I want a respectful housemate who keeps shared spaces tidy, likes quiet weeknights, and communicates early about plans."
+    lookingFor: "I want a respectful housemate who keeps shared spaces tidy, likes quiet weeknights, and communicates early about plans.",
+    commitmentLevel: "ready"
   },
   "rm-102": {
     lifeStage: "student",
     courseOrJob: "Architecture student",
     interests: ["Sketching", "Coffee runs", "Gallery visits", "Interior design"],
     habits: { cleanliness: 4, sleep: 4, noise: 2 },
-    lookingFor: "Looking for someone reliable, calm, and happy to follow a shared routine for chores, guests, and bills."
+    lookingFor: "Looking for someone reliable, calm, and happy to follow a shared routine for chores, guests, and bills.",
+    commitmentLevel: "active"
   },
   "rm-103": {
     lifeStage: "student",
     courseOrJob: "Mechanical Engineering student",
     interests: ["Gym sessions", "Five-a-side", "Cooking nights", "Weekend hikes"],
     habits: { cleanliness: 3, sleep: 3, noise: 4 },
-    lookingFor: "I want a friendly housemate who is up for the occasional dinner or weekend plan, but still respects quiet hours."
+    lookingFor: "I want a friendly housemate who is up for the occasional dinner or weekend plan, but still respects quiet hours.",
+    commitmentLevel: "active"
   },
   "rm-104": {
     lifeStage: "professional",
     courseOrJob: "Business analyst",
     interests: ["Podcasts", "Long walks", "Budget planning", "Calm evenings"],
     habits: { cleanliness: 4, sleep: 4, noise: 1 },
-    lookingFor: "Looking for someone low-drama, considerate, and happy with a more private setup where boundaries are explicit."
+    lookingFor: "Looking for someone low-drama, considerate, and happy with a more private setup where boundaries are explicit.",
+    commitmentLevel: "ready"
   },
   "rm-105": {
     lifeStage: "student",
     courseOrJob: "Media Studies student",
     interests: ["Movie nights", "Photography", "Easy dinners", "Waterfront walks"],
     habits: { cleanliness: 3, sleep: 3, noise: 3 },
-    lookingFor: "I want a housemate who is easy to live with, open to a chat in the kitchen, and still respectful about shared space."
+    lookingFor: "I want a housemate who is easy to live with, open to a chat in the kitchen, and still respectful about shared space.",
+    commitmentLevel: "casual"
   },
   "rm-106": {
     lifeStage: "student",
     courseOrJob: "English Literature student",
     interests: ["Reading groups", "Soft playlists", "Cafe study sessions", "Baking"],
     habits: { cleanliness: 4, sleep: 4, noise: 2 },
-    lookingFor: "Looking for someone thoughtful, tidy, and comfortable with a quieter home that still feels warm and friendly."
+    lookingFor: "Looking for someone thoughtful, tidy, and comfortable with a quieter home that still feels warm and friendly.",
+    commitmentLevel: "active"
   },
   "rm-107": {
     lifeStage: "professional",
     courseOrJob: "Freelance graphic designer",
     interests: ["Illustration", "Cycling", "Plants", "Low-key dinners"],
     habits: { cleanliness: 3, sleep: 3, noise: 3 },
-    lookingFor: "I want a practical housemate who pays on time, plans guests ahead, and likes a home that feels relaxed but looked after."
+    lookingFor: "I want a practical housemate who pays on time, plans guests ahead, and likes a home that feels relaxed but looked after.",
+    commitmentLevel: "ready"
   },
   "rm-108": {
     lifeStage: "student",
     courseOrJob: "Neuroscience student",
     interests: ["Running", "Revision sprints", "Tea breaks", "Nature walks"],
     habits: { cleanliness: 5, sleep: 5, noise: 1 },
-    lookingFor: "Looking for someone who values early nights, calm weekday routines, and a house that stays predictable and quiet."
+    lookingFor: "Looking for someone who values early nights, calm weekday routines, and a house that stays predictable and quiet.",
+    commitmentLevel: "ready"
   },
   "rm-109": {
     lifeStage: "student",
     courseOrJob: "Film Studies student",
     interests: ["Film nights", "Cooking", "Live music", "Weekend hosting"],
     habits: { cleanliness: 3, sleep: 2, noise: 4 },
-    lookingFor: "I want a sociable housemate who enjoys a shared dinner now and then, but still cleans up and respects the rest of the house."
+    lookingFor: "I want a sociable housemate who enjoys a shared dinner now and then, but still cleans up and respects the rest of the house.",
+    commitmentLevel: "casual"
   },
   "rm-110": {
     lifeStage: "professional",
     courseOrJob: "Music producer",
     interests: ["DJ sets", "Design magazines", "Brunch spots", "Creative projects"],
     habits: { cleanliness: 3, sleep: 2, noise: 4 },
-    lookingFor: "Looking for someone communicative who enjoys a lively but not chaotic home and is comfortable agreeing noise boundaries early."
+    lookingFor: "Looking for someone communicative who enjoys a lively but not chaotic home and is comfortable agreeing noise boundaries early.",
+    commitmentLevel: "active"
   },
   "rm-111": {
     lifeStage: "professional",
     courseOrJob: "Economics graduate analyst",
     interests: ["Running clubs", "Podcasts", "Meal prep", "Sunday resets"],
     habits: { cleanliness: 4, sleep: 4, noise: 3 },
-    lookingFor: "I want a balanced housemate who is organized, friendly, and comfortable with a house that runs on clear expectations."
+    lookingFor: "I want a balanced housemate who is organized, friendly, and comfortable with a house that runs on clear expectations.",
+    commitmentLevel: "active"
   },
   "rm-112": {
     lifeStage: "professional",
     courseOrJob: "Finance associate",
     interests: ["Gym before work", "Coffee shops", "City walks", "Football"],
     habits: { cleanliness: 4, sleep: 4, noise: 2 },
-    lookingFor: "Looking for someone polished but easygoing who wants a tidy flat, a short commute, and clear guest expectations."
+    lookingFor: "Looking for someone polished but easygoing who wants a tidy flat, a short commute, and clear guest expectations.",
+    commitmentLevel: "ready"
   }
 };
 

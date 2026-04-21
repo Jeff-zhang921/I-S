@@ -6,12 +6,23 @@ type AccountPageProps = {
   account: AccountState;
   starters: StarterAccount[];
   status: StatusState;
+  hasSavedDraft: boolean;
   onUseStarter: (starter: StarterAccount["values"]) => void;
+  onResumeSavedDraft: () => void;
   onChange: <K extends keyof AccountState>(field: K, value: AccountState[K]) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-function AccountPage({ account, starters, status, onUseStarter, onChange, onSubmit }: AccountPageProps) {
+function AccountPage({
+  account,
+  starters,
+  status,
+  hasSavedDraft,
+  onUseStarter,
+  onResumeSavedDraft,
+  onChange,
+  onSubmit
+}: AccountPageProps) {
   return (
     <section className="screen split-screen account-screen">
       <div className="hero-pane hero-pane-coral scene-pane">
@@ -77,6 +88,21 @@ function AccountPage({ account, starters, status, onUseStarter, onChange, onSubm
               </button>
             ))}
           </div>
+
+          {hasSavedDraft ? (
+            <section className="summary-panel draft-resume-panel">
+              <div>
+                <p className="panel-kicker">Saved onboarding draft</p>
+                <h3>Pick up where you left off</h3>
+                <p className="inline-note">
+                  Your onboarding progress was saved locally, including privacy choices and questionnaire answers.
+                </p>
+              </div>
+              <button type="button" className="secondary-button" onClick={onResumeSavedDraft}>
+                Resume draft
+              </button>
+            </section>
+          ) : null}
 
           <form className="stack-form account-form" onSubmit={onSubmit} noValidate>
             <div className="field-grid account-field-grid">

@@ -1,12 +1,15 @@
+import CommitmentBadge from "../../components/CommitmentBadge";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { petPolicyOptions } from "../../data/findRoom";
 import { roomDetailById } from "../../data/roomDetails";
 import {
+  describeCommitmentLevel,
   describeHouseEnergy,
   describeResidentMix,
   formatMoveIn,
   formatPerPersonMonthly,
+  getFlatmateProfile,
   getListingMeta,
   getOccupantCount
 } from "../../lib/findRoom";
@@ -40,12 +43,16 @@ function BrowseListingsPage({
   onOpenMatch
 }: BrowseListingsPageProps) {
   const quickCommuteOptions = [20, 30, 45];
+  const commitmentSummary = filters.commitmentLevels.length
+    ? `Commitment: ${describeCommitmentLevel(filters.commitmentLevels[0])}${filters.commitmentLevels.length > 1 ? ` +${filters.commitmentLevels.length - 1} more` : ""}`
+    : "";
   const activeFilterSummary = [
     filters.locationQuery ? `Area: ${filters.locationQuery}` : "",
     filters.houseTypes[0] ? `House type: ${filters.houseTypes[0]}` : "",
     filters.quietHouse ? "Quiet house" : "",
     filters.socialHouse ? "Social house" : "",
-    filters.professionalsOnly ? "Professionals only" : ""
+    filters.professionalsOnly ? "Professionals only" : "",
+    commitmentSummary
   ].filter(Boolean);
 
   return (
@@ -159,6 +166,7 @@ function BrowseListingsPage({
         {matches.map((match) => {
           const detail = roomDetailById[match.id];
           const listingMeta = getListingMeta(match.id);
+          const flatmateProfile = getFlatmateProfile(match.id);
           const coverPhoto = detail.photos[0];
           const occupantCount = getOccupantCount(detail.currentOccupants);
 
@@ -171,7 +179,10 @@ function BrowseListingsPage({
                   <h3>{match.roomTitle}</h3>
                   <p className="listing-meta">{match.neighborhood} | {formatPerPersonMonthly(match.monthlyRent)}</p>
                 </div>
-                <span className="tag-chip">{match.score}% fit</span>
+                <div className="detail-badge-stack">
+                  <CommitmentBadge level={flatmateProfile.commitmentLevel} />
+                  <span className="tag-chip">{match.score}% fit</span>
+                </div>
               </div>
 
               <p>{detail.summary}</p>

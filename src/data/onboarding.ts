@@ -1,7 +1,9 @@
 import {
   AccountState,
   CategoryMeta,
+  CommitmentLevelOption,
   MatchTarget,
+  PrivacyLevel,
   PrivacyLevelOption,
   ProfileNotesState,
   Question,
@@ -243,27 +245,57 @@ export const scaleChoices: ScaleChoice[] = [
   { value: 5, label: "Exactly me" }
 ];
 
+function countPrivacyQuestions(level: PrivacyLevel) {
+  return questionBank.filter(
+    (question) => question.category === "privacy" && (question.privacyLevels?.includes(level) ?? true)
+  ).length;
+}
+
 export const privacyLevelOptions: PrivacyLevelOption[] = [
   {
     value: "open",
     title: "Visible to Everyone",
-    summaryLabel: "Open visibility",
-    description: "Your full profile appears in the feed right away so people can message sooner. Includes 2 quick privacy questions only.",
-    questionCount: 2
+    summaryLabel: "Visible to everyone",
+    description: "Your full profile appears on the main feed, making it easier for people to find you and reach out quickly.",
+    impactLabel: "Shown on the main feed",
+    questionCount: countPrivacyQuestions("open")
   },
   {
     value: "balanced",
     title: "Visible to Matches Only",
-    summaryLabel: "Matches only",
-    description: "Your profile opens once there is clear interest, which gives you more control before details are shared. Includes 4 privacy questions.",
-    questionCount: 4
+    summaryLabel: "Visible to matches only",
+    description: "Your profile stays out of the main feed until there is mutual interest, so people need to match before seeing your details.",
+    impactLabel: "Unlocked after mutual interest",
+    questionCount: countPrivacyQuestions("balanced")
   },
   {
     value: "private",
-    title: "Visible After You Choose to Connect",
-    summaryLabel: "Screen first",
-    description: "Most details stay hidden until you decide to reach out, which keeps the early feed lighter on personal info. Includes 5 privacy questions.",
-    questionCount: 5
+    title: "Hidden Until You Reach Out",
+    summaryLabel: "Hidden until you connect",
+    description: "Your profile is hidden from the main feed. You choose when to start contact and reveal more about yourself.",
+    impactLabel: "You control first contact",
+    questionCount: countPrivacyQuestions("private")
+  }
+];
+
+export const commitmentLevelOptions: CommitmentLevelOption[] = [
+  {
+    value: "casual",
+    title: "Casual",
+    shortLabel: "Just looking around",
+    description: "Browsing without a fixed move date yet and using the app to learn what is available."
+  },
+  {
+    value: "active",
+    title: "Active",
+    shortLabel: "Looking to move within 1 to 3 months",
+    description: "Comparing realistic options now and planning to move in the next one to three months."
+  },
+  {
+    value: "ready",
+    title: "Ready",
+    shortLabel: "Ready to move immediately",
+    description: "Prepared to move immediately or very soon, with deposit and logistics already lined up."
   }
 ];
 
@@ -288,7 +320,8 @@ export const initialAccountState: AccountState = {
   verificationMethod: "email",
   verificationCode: DEMO_VERIFICATION_CODE,
   idCheckChoice: "skip",
-  privacyLevel: "balanced"
+  privacyLevel: "balanced",
+  commitmentLevel: "active"
 };
 
 export const initialProfileNotes: ProfileNotesState = {

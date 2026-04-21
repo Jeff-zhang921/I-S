@@ -1,6 +1,8 @@
+import { commitmentLevelOptions } from "../data/onboarding";
 import { flatmateProfilesByMatchId, listingMetaByMatchId } from "../data/findRoom";
 import { roomDetailById } from "../data/roomDetails";
 import {
+  CommitmentLevel,
   FiltersState,
   FlatmateLifeStage,
   FlatmateProfile,
@@ -65,6 +67,22 @@ export function getLifeStageFieldLabel(lifeStage: FlatmateLifeStage) {
 
 export function getLifeStageBadgeLabel(lifeStage: FlatmateLifeStage) {
   return lifeStage === "student" ? "Student" : "Professional";
+}
+
+export function getCommitmentLevelMeta(level: CommitmentLevel) {
+  return commitmentLevelOptions.find((option) => option.value === level) ?? commitmentLevelOptions[1];
+}
+
+export function describeCommitmentLevel(level: CommitmentLevel) {
+  return getCommitmentLevelMeta(level).shortLabel;
+}
+
+export function getCommitmentBadgeLabel(level: CommitmentLevel) {
+  return getCommitmentLevelMeta(level).title;
+}
+
+export function getCommitmentBadgeDetail(level: CommitmentLevel) {
+  return getCommitmentLevelMeta(level).shortLabel;
 }
 
 export function describeHouseEnergy(energy: HouseEnergy) {
@@ -222,6 +240,10 @@ export function getFilteredMatches<T extends RoommateMatch>(matches: T[], filter
       return false;
     }
 
+    if (filters.commitmentLevels.length && !filters.commitmentLevels.includes(flatmateProfile.commitmentLevel)) {
+      return false;
+    }
+
     if (filters.amenities.length && !filters.amenities.every((amenity) => match.amenities.includes(amenity as never))) {
       return false;
     }
@@ -284,6 +306,10 @@ export function scoreRoomMatch(userScores: MatchTarget, targetScores: MatchTarge
   }
 
   if (filters.socialHouse && meta.houseEnergy === "social") {
+    score += 2;
+  }
+
+  if (filters.commitmentLevels.length && filters.commitmentLevels.includes(profile.commitmentLevel)) {
     score += 2;
   }
 
@@ -388,6 +414,25 @@ function buildDealbreakerInsight(match: RoommateMatch, profileNotes: ProfileNote
   };
 }
 
+function buildCommitmentInsight(match: RoommateMatch, filters: FiltersState) {
+  const commitmentLevel = getFlatmateProfile(match.id).commitmentLevel;
+  const label = describeCommitmentLevel(commitmentLevel);
+
+  if (!filters.commitmentLevels.length) {
+    return {
+      label: `Current tenants are ${label.toLowerCase()}, which helps signal how serious the move-in timeline is.`,
+      status: "positive" as const
+    };
+  }
+
+  return {
+    label: filters.commitmentLevels.includes(commitmentLevel)
+      ? `Commitment level matches your filter: ${label}.`
+      : `Commitment level is ${label}, which sits outside your current intent filter.`,
+    status: filters.commitmentLevels.includes(commitmentLevel) ? "positive" as const : "negative" as const
+  };
+}
+
 export function buildMatchInsights(
   match: ScoredRoomMatch,
   filters: FiltersState,
@@ -404,6 +449,11 @@ export function buildMatchInsights(
 
   return {
     badge: getCompatibilityBadge(match.score),
-    lines: [budgetLine, buildLifestyleInsight(match, userScores), buildDealbreakerInsight(match, profileNotes)]
+    lines: [
+      budgetLine,
+      buildLifestyleInsight(match, userScores),
+      buildDealbreakerInsight(match, profileNotes),
+      buildCommitmentInsight(match, filters)
+    ]
   };
 }

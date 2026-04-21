@@ -1,3 +1,4 @@
+import CommitmentBadge from "./CommitmentBadge";
 import { RoommateMatch } from "../types";
 import {
   getFlatmateProfile,
@@ -53,7 +54,10 @@ function RichFlatmateProfile({ match }: RichFlatmateProfileProps) {
           <p className="panel-kicker">Flatmate profile</p>
           <h2>{match.roommate.name}</h2>
         </div>
-        <span className="tag-chip">{getLifeStageBadgeLabel(profile.lifeStage)}</span>
+        <div className="detail-badge-stack">
+          <span className="tag-chip">{getLifeStageBadgeLabel(profile.lifeStage)}</span>
+          <CommitmentBadge level={profile.commitmentLevel} />
+        </div>
       </div>
 
       <div className="flatmate-basic-grid">

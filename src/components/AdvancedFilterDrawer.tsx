@@ -1,5 +1,6 @@
 import {
   amenityOptions,
+  commitmentLevelFilterOptions,
   houseTypeOptions,
   lifestyleFilterOptions,
   moveInTimingOptions,
@@ -7,13 +8,14 @@ import {
   radiusOptions
 } from "../data/findRoom";
 import { formatPerPersonMonthly } from "../lib/findRoom";
-import { FiltersState, HouseType } from "../types";
+import { CommitmentLevel, FiltersState, HouseType } from "../types";
 
 type AdvancedFilterDrawerProps = {
   filters: FiltersState;
   resultCount: number;
   onChange: <K extends keyof FiltersState>(field: K, value: FiltersState[K]) => void;
   onToggleAmenity: (amenity: string) => void;
+  onToggleCommitmentLevel: (commitmentLevel: CommitmentLevel) => void;
   onToggleHouseType: (houseType: HouseType) => void;
   onApply: () => void;
 };
@@ -23,6 +25,7 @@ function AdvancedFilterDrawer({
   resultCount,
   onChange,
   onToggleAmenity,
+  onToggleCommitmentLevel,
   onToggleHouseType,
   onApply
 }: AdvancedFilterDrawerProps) {
@@ -215,6 +218,27 @@ function AdvancedFilterDrawer({
             <div>
               <p className="panel-kicker">Lifestyle</p>
               <h3>Shared-living filters</h3>
+            </div>
+          </div>
+
+          <div className="filter-chip-section">
+            <div className="filter-chip-copy">
+              <p className="panel-kicker">Commitment level</p>
+              <p className="inline-note">Filter out people who are only browsing if you need faster-moving options.</p>
+            </div>
+
+            <div className="commitment-filter-grid">
+              {commitmentLevelFilterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={filters.commitmentLevels.includes(option.value) ? "commitment-filter-card active" : "commitment-filter-card"}
+                  onClick={() => onToggleCommitmentLevel(option.value)}
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.detail}</span>
+                </button>
+              ))}
             </div>
           </div>
 

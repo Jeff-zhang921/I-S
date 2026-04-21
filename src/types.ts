@@ -34,6 +34,7 @@ export type VerificationMethod = "email" | "phone";
 export type IdCheckChoice = "skip" | "include";
 export type ProfileField = "mustHaves" | "dealbreakers";
 export type PrivacyLevel = "open" | "balanced" | "private";
+export type CommitmentLevel = "casual" | "active" | "ready";
 
 export type AccountState = {
   fullName: string;
@@ -44,6 +45,7 @@ export type AccountState = {
   verificationCode: string;
   idCheckChoice: IdCheckChoice;
   privacyLevel: PrivacyLevel;
+  commitmentLevel: CommitmentLevel;
 };
 
 export type BaseQuestion = {
@@ -91,7 +93,15 @@ export type PrivacyLevelOption = {
   title: string;
   summaryLabel: string;
   description: string;
+  impactLabel: string;
   questionCount: number;
+};
+
+export type CommitmentLevelOption = {
+  value: CommitmentLevel;
+  title: string;
+  shortLabel: string;
+  description: string;
 };
 
 export type ScaleChoice = {
@@ -120,6 +130,7 @@ export type FiltersState = {
   professionalsOnly: boolean;
   quietHouse: boolean;
   socialHouse: boolean;
+  commitmentLevels: CommitmentLevel[];
   amenities: string[];
 };
 
@@ -170,6 +181,7 @@ export type FlatmateProfile = {
   interests: string[];
   habits: Record<HabitKey, number>;
   lookingFor: string;
+  commitmentLevel: CommitmentLevel;
 };
 
 export type ScoredRoomMatch = RoommateMatch & {

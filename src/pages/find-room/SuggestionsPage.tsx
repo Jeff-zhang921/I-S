@@ -1,3 +1,4 @@
+import CommitmentBadge from "../../components/CommitmentBadge";
 import MatchInsights from "../../components/MatchInsights";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
@@ -68,7 +69,10 @@ function SuggestionsPage({ matches, filters, userScores, profileNotes, onBack, o
                     <h3>{match.roomTitle}</h3>
                     <p className="listing-meta">{match.neighborhood} | {formatPerPersonMonthly(match.monthlyRent)}</p>
                   </div>
-                  <div className="match-score-pill">{match.score}% fit</div>
+                  <div className="detail-badge-stack">
+                    <CommitmentBadge level={flatmateProfile.commitmentLevel} />
+                    <div className="match-score-pill">{match.score}% fit</div>
+                  </div>
                 </div>
 
                 <p>{detail.summary}</p>

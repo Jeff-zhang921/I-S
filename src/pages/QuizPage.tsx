@@ -35,6 +35,8 @@ type QuizPageProps = {
   status: StatusState;
   onScaleCommit: (value: number) => void;
   onBack: () => void;
+  onJumpToSection: (categoryId: CategoryMeta["id"]) => void;
+  onSaveAndExit: (nextProfileNotes?: Partial<ProfileNotesState>) => void;
   onTextChange: <K extends keyof ProfileNotesState>(field: K, value: ProfileNotesState[K]) => void;
   onTextSubmit: (nextValue?: string) => void;
   isQuestionAnswered: (question: Question) => boolean;
@@ -60,6 +62,8 @@ function QuizPage({
   status,
   onScaleCommit,
   onBack,
+  onJumpToSection,
+  onSaveAndExit,
   onTextChange,
   onTextSubmit,
   isQuestionAnswered
@@ -70,6 +74,31 @@ function QuizPage({
   const textItems = currentQuestion.type === "text" ? parseProfileList(currentTextValue) : [];
   const previewTextItems = textItems.slice(0, 3);
   const hiddenTextItemsCount = Math.max(textItems.length - previewTextItems.length, 0);
+  const sectionIndex = Math.max(
+    categoryMeta.findIndex((category) => category.id === currentCategory.id),
+    0
+  );
+  const totalSections = categoryMeta.length;
+  const currentCategoryAnsweredCount = activeQuestionBank.filter(
+    (question) => question.category === currentCategory.id && isQuestionAnswered(question)
+  ).length;
+  const currentSectionProgress = currentCategoryQuestionsLength
+    ? (currentCategoryAnsweredCount / currentCategoryQuestionsLength) * 100
+    : 0;
+  const sectionSummaries = categoryMeta.map((category, index) => {
+    const answered = activeQuestionBank.filter(
+      (question) => question.category === category.id && isQuestionAnswered(question)
+    ).length;
+    const total = categoryQuestionCounts[category.id];
+
+    return {
+      ...category,
+      answered,
+      total,
+      index,
+      state: category.id === currentQuestion.category ? "active" : answered === total ? "done" : "upcoming"
+    };
+  });
 
   function buildNextTextValue(rawValue: string) {
     if (currentQuestion.type !== "text") {
@@ -132,47 +161,53 @@ function QuizPage({
     onTextSubmit(nextValue);
   }
 
+  function handleSaveAndExitAction() {
+    if (currentQuestion.type === "text") {
+      const trimmedDraft = currentTextDraft.trim();
+      if (trimmedDraft) {
+        const nextValue = buildNextTextValue(trimmedDraft);
+        setTagDrafts((current) => ({ ...current, [currentQuestion.field]: "" }));
+        onSaveAndExit({ [currentQuestion.field]: nextValue });
+        return;
+      }
+    }
+
+    onSaveAndExit();
+  }
+
   return (
     <section className="screen quiz-screen quiz-screen-fixed">
       <aside className="quiz-rail">
-        <TopBackButton label="Back" onClick={onBack} className="top-back-button-desktop" />
-
         <p className="eyebrow">Page 3 of 10</p>
-        <h1>Answer one card at a time.</h1>
+        <h1>Move through one section at a time.</h1>
         <p className="lede">
-          The onboarding stays focused and sequential. Visibility is set to {privacyLevelMeta.summaryLabel.toLowerCase()}, so this version has {totalQuestions} questions total.
+          The onboarding is split into manageable sections. Visibility is set to {privacyLevelMeta.summaryLabel.toLowerCase()},
+          so this version has {totalQuestions} questions total.
         </p>
 
         <div className="progress-card">
           <div className="progress-copy">
-            <strong>{answeredCount} / {totalQuestions} answered</strong>
+            <strong>Step {sectionIndex + 1} of {totalSections}: {currentCategory.title}</strong>
             <span>{Math.round(quizProgress)}% complete</span>
           </div>
           <div className="progress-track" aria-hidden="true">
             <span style={{ width: `${quizProgress}%` }} />
           </div>
+          <p className="inline-note quiz-progress-note">
+            Section progress: {currentCategoryAnsweredCount} of {currentCategoryQuestionsLength} answered.
+          </p>
         </div>
 
         <ul className="category-list">
-          {categoryMeta.map((category) => {
-            const categoryQuestionsAnswered = activeQuestionBank.filter(
-              (question) => question.category === category.id && isQuestionAnswered(question)
-            ).length;
-            const state =
-              category.id === currentQuestion.category
-                ? "active"
-                : categoryQuestionsAnswered === categoryQuestionCounts[category.id]
-                  ? "done"
-                  : "upcoming";
-
+          {sectionSummaries.map((category) => {
             return (
-              <li key={category.id} className={`category-item ${state} tone-${category.accent}`}>
+              <li key={category.id} className={`category-item ${category.state} tone-${category.accent}`}>
                 <div>
-                  <strong>{category.title}</strong>
+                  <strong>Step {category.index + 1}: {category.title}</strong>
                   <p>{category.summary}</p>
                 </div>
                 <span>
-                  {categoryQuestionsAnswered}/{categoryQuestionCounts[category.id]}
+                  {category.answered}/{category.total}
                 </span>
               </li>
             );
@@ -186,29 +221,70 @@ function QuizPage({
       </aside>
 
       <div className="quiz-stage">
-        <TopBackButton label="Back" onClick={onBack} className="top-back-button-mobile" />
-
-        <div className="quiz-mobile-summary">
-          <div className="quiz-mobile-topline">
-            <p className="eyebrow">Page 3 of 10</p>
-            <span className={`category-badge tone-${currentCategory.accent}`}>
-              {currentCategoryQuestionNumber}/{currentCategoryQuestionsLength}
-            </span>
-          </div>
-
-          <div className="quiz-mobile-progress">
-            <strong>
-              {questionIndex + 1}/{totalQuestions}
-            </strong>
-            <span>
-              {answeredCount} answered | {privacyLevelMeta.summaryLabel}
-            </span>
-          </div>
-
-          <div className="progress-track" aria-hidden="true">
-            <span style={{ width: `${quizProgress}%` }} />
+        <div className="quiz-stage-top">
+          <TopBackButton label="Back" onClick={onBack} />
+          <div className="quiz-stage-topline">
+            <span className="tag-chip">Step {sectionIndex + 1} of {totalSections}</span>
+            <span className="inline-note">Finish later any time</span>
           </div>
         </div>
+
+        <section className="summary-panel quiz-progress-banner">
+          <div className="quiz-progress-banner-head">
+            <div>
+              <p className="panel-kicker">Step {sectionIndex + 1} of {totalSections}</p>
+              <h2>{currentCategory.title}</h2>
+            </div>
+            <div className="quiz-progress-badge-group">
+              <span className="tag-chip">{Math.round(quizProgress)}% overall</span>
+              <span className={`category-badge tone-${currentCategory.accent}`}>
+                {currentCategoryAnsweredCount}/{currentCategoryQuestionsLength} answered
+              </span>
+            </div>
+          </div>
+
+          <p className="inline-note quiz-progress-banner-note">
+            Work through one section at a time. Jump between steps if needed, and use Finish later whenever you want to stop.
+          </p>
+
+          <div className="quiz-progress-meters">
+            <div className="quiz-progress-meter">
+              <div className="progress-copy">
+                <strong>Section progress</strong>
+                <span>{currentCategoryAnsweredCount}/{currentCategoryQuestionsLength} complete</span>
+              </div>
+              <div className="progress-track" aria-hidden="true">
+                <span style={{ width: `${currentSectionProgress}%` }} />
+              </div>
+            </div>
+
+            <div className="quiz-progress-meter">
+              <div className="progress-copy">
+                <strong>Overall progress</strong>
+                <span>{answeredCount}/{totalQuestions} answered</span>
+              </div>
+              <div className="progress-track" aria-hidden="true">
+                <span style={{ width: `${quizProgress}%` }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="quiz-stepper" role="navigation" aria-label="Questionnaire steps">
+            {sectionSummaries.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                className={`quiz-step-button ${section.state}`}
+                aria-current={section.id === currentCategory.id ? "step" : undefined}
+                onClick={() => onJumpToSection(section.id)}
+              >
+                <span>Step {section.index + 1}</span>
+                <strong>{section.title}</strong>
+                <small>{section.answered}/{section.total}</small>
+              </button>
+            ))}
+          </div>
+        </section>
 
         <div className="quiz-meta">
           <div>
@@ -279,6 +355,9 @@ function QuizPage({
           <StatusBanner status={status} />
 
           <div className="button-row quiz-actions">
+            <button type="button" className="secondary-button quiz-exit-button" onClick={handleSaveAndExitAction}>
+              Finish later
+            </button>
             {currentQuestion.type === "scale" ? (
               <p className="inline-note">Tap 1-5 or drag the slider. The next card opens immediately.</p>
             ) : (

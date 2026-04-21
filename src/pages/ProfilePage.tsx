@@ -1,6 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
+import CommitmentBadge from "../components/CommitmentBadge";
 import ScreenFlowNav from "../components/ScreenFlowNav";
 import TopBackButton from "../components/TopBackButton";
+import { describeCommitmentLevel } from "../lib/findRoom";
 import { describeCategoryScore, parseProfileList } from "../lib/onboarding";
 import { CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
 
@@ -15,6 +17,7 @@ type ProfilePageProps = {
     fullName: string;
     email: string;
     phone: string;
+    commitmentLevel: "casual" | "active" | "ready";
     verificationMethod: string;
     idCheckChoice: string;
   };
@@ -109,6 +112,7 @@ function ProfilePage({
           <span>Need a room</span>
           <span>{answeredCount} answers</span>
           <span>{privacyLevelMeta.summaryLabel}</span>
+          <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
           <span>{savedCount} interested houses</span>
           <span>{contactedCount} intros sent</span>
         </div>
@@ -157,6 +161,10 @@ function ProfilePage({
             <article className="detail-card detail-card-wide">
               <strong>Profile visibility</strong>
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
+            </article>
+            <article className="detail-card detail-card-wide">
+              <strong>Commitment level</strong>
+              <CommitmentBadge level={account.commitmentLevel} showDetail />
             </article>
           </div>
         </ProfilePanel>
