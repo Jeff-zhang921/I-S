@@ -2,7 +2,14 @@ import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { petPolicyOptions } from "../../data/findRoom";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
+import {
+  describeHouseEnergy,
+  describeResidentMix,
+  formatMoveIn,
+  formatPerPersonMonthly,
+  getListingMeta,
+  getOccupantCount
+} from "../../lib/findRoom";
 import { FiltersState, ScoredRoomMatch } from "../../types";
 
 type BrowseListingsPageProps = {
@@ -33,6 +40,13 @@ function BrowseListingsPage({
   onOpenMatch
 }: BrowseListingsPageProps) {
   const quickCommuteOptions = [20, 30, 45];
+  const activeFilterSummary = [
+    filters.locationQuery ? `Area: ${filters.locationQuery}` : "",
+    filters.houseTypes[0] ? `House type: ${filters.houseTypes[0]}` : "",
+    filters.quietHouse ? "Quiet house" : "",
+    filters.socialHouse ? "Social house" : "",
+    filters.professionalsOnly ? "Professionals only" : ""
+  ].filter(Boolean);
 
   return (
     <section className="screen branch-screen">
@@ -116,6 +130,16 @@ function BrowseListingsPage({
             </div>
           </div>
         </div>
+
+        {activeFilterSummary.length ? (
+          <div className="tag-preview">
+            {activeFilterSummary.map((item) => (
+              <span key={item} className="tag-chip">
+                {item}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <ScreenFlowNav
@@ -134,6 +158,7 @@ function BrowseListingsPage({
       <div className="listing-grid">
         {matches.map((match) => {
           const detail = roomDetailById[match.id];
+          const listingMeta = getListingMeta(match.id);
           const coverPhoto = detail.photos[0];
           const occupantCount = getOccupantCount(detail.currentOccupants);
 
@@ -171,10 +196,12 @@ function BrowseListingsPage({
                 <span>Move-in {formatMoveIn(match.moveIn)}</span>
                 <span>{match.leaseLength}</span>
                 <span>{match.commuteMinutes} min commute</span>
-                <span>{detail.bedrooms} bed home</span>
+                <span>{listingMeta.houseType}</span>
               </div>
 
               <div className="tag-preview">
+                <span className="tag-chip">{describeHouseEnergy(listingMeta.houseEnergy)}</span>
+                <span className="tag-chip">{describeResidentMix(listingMeta.residentMix)}</span>
                 {match.amenities.slice(0, 4).map((amenity) => (
                   <span key={amenity} className="tag-chip">
                     {amenity}

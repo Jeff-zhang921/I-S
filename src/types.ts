@@ -99,10 +99,27 @@ export type ScaleChoice = {
   label: string;
 };
 
+export type HouseType = "Flat" | "Terrace" | "Apartment" | "House" | "Warehouse";
+export type MoveInTiming = "any" | "available_now" | "within_month" | "later";
+export type ResidentMix = "students" | "professionals" | "mixed";
+export type HouseEnergy = "quiet" | "balanced" | "social";
+export type FlatmateLifeStage = "student" | "professional";
+export type HabitKey = "cleanliness" | "sleep" | "noise";
+
 export type FiltersState = {
+  minRent: number;
   maxRent: number;
   maxCommute: number;
   petFriendly: "any" | "yes" | "no";
+  locationQuery: string;
+  radiusMiles: number;
+  moveInTiming: MoveInTiming;
+  houseTypes: HouseType[];
+  occupantCountMin: number;
+  occupantCountMax: number;
+  professionalsOnly: boolean;
+  quietHouse: boolean;
+  socialHouse: boolean;
   amenities: string[];
 };
 
@@ -145,6 +162,14 @@ export type RoommateMatch = {
   };
   whyMatch: string[];
   quickQuestions: string[];
+};
+
+export type FlatmateProfile = {
+  lifeStage: FlatmateLifeStage;
+  courseOrJob: string;
+  interests: string[];
+  habits: Record<HabitKey, number>;
+  lookingFor: string;
 };
 
 export type ScoredRoomMatch = RoommateMatch & {
@@ -218,4 +243,18 @@ export type RoomDetail = {
   houseRules: string[];
   neighborhoodNotes: string[];
   photos: RoomPhoto[];
+};
+
+export type ListingMeta = {
+  houseType: HouseType;
+  residentMix: ResidentMix;
+  houseEnergy: HouseEnergy;
+  distanceMiles: number;
+  locationTags: string[];
+  moveInCategory: MoveInTiming;
+};
+
+export type MatchInsightLine = {
+  label: string;
+  status: "positive" | "negative";
 };

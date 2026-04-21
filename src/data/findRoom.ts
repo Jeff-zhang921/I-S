@@ -1,9 +1,19 @@
-import { FiltersState, RoommateMatch } from "../types";
+import { FiltersState, FlatmateProfile, HouseType, ListingMeta, RoommateMatch } from "../types";
 
 export const defaultFilters: FiltersState = {
+  minRent: 700,
   maxRent: 1400,
   maxCommute: 45,
   petFriendly: "any",
+  locationQuery: "",
+  radiusMiles: 5,
+  moveInTiming: "any",
+  houseTypes: [],
+  occupantCountMin: 0,
+  occupantCountMax: 5,
+  professionalsOnly: false,
+  quietHouse: false,
+  socialHouse: false,
   amenities: []
 };
 
@@ -21,6 +31,27 @@ export const amenityOptions = [
   "Near transit",
   "Parking",
   "Furnished"
+] as const;
+
+export const radiusOptions = [
+  { value: 1, label: "+1 mile" },
+  { value: 5, label: "+5 miles" },
+  { value: 10, label: "+10 miles" }
+] as const;
+
+export const moveInTimingOptions = [
+  { value: "any", label: "Any time" },
+  { value: "available_now", label: "Available now" },
+  { value: "within_month", label: "Within 1 month" },
+  { value: "later", label: "Later this term" }
+] as const;
+
+export const houseTypeOptions: HouseType[] = ["Flat", "Terrace", "Apartment", "House", "Warehouse"];
+
+export const lifestyleFilterOptions = [
+  { field: "professionalsOnly", label: "Professionals only" },
+  { field: "quietHouse", label: "Quiet house" },
+  { field: "socialHouse", label: "Social house" }
 ] as const;
 
 export const roomMatches: RoommateMatch[] = [
@@ -445,3 +476,189 @@ export const roomMatches: RoommateMatch[] = [
     ]
   }
 ];
+
+export const flatmateProfilesByMatchId: Record<string, FlatmateProfile> = {
+  "rm-101": {
+    lifeStage: "student",
+    courseOrJob: "Computer Science student",
+    interests: ["Meal prep", "Pilates", "Indie playlists", "Weekend markets"],
+    habits: { cleanliness: 5, sleep: 5, noise: 2 },
+    lookingFor: "I want a respectful housemate who keeps shared spaces tidy, likes quiet weeknights, and communicates early about plans."
+  },
+  "rm-102": {
+    lifeStage: "student",
+    courseOrJob: "Architecture student",
+    interests: ["Sketching", "Coffee runs", "Gallery visits", "Interior design"],
+    habits: { cleanliness: 4, sleep: 4, noise: 2 },
+    lookingFor: "Looking for someone reliable, calm, and happy to follow a shared routine for chores, guests, and bills."
+  },
+  "rm-103": {
+    lifeStage: "student",
+    courseOrJob: "Mechanical Engineering student",
+    interests: ["Gym sessions", "Five-a-side", "Cooking nights", "Weekend hikes"],
+    habits: { cleanliness: 3, sleep: 3, noise: 4 },
+    lookingFor: "I want a friendly housemate who is up for the occasional dinner or weekend plan, but still respects quiet hours."
+  },
+  "rm-104": {
+    lifeStage: "professional",
+    courseOrJob: "Business analyst",
+    interests: ["Podcasts", "Long walks", "Budget planning", "Calm evenings"],
+    habits: { cleanliness: 4, sleep: 4, noise: 1 },
+    lookingFor: "Looking for someone low-drama, considerate, and happy with a more private setup where boundaries are explicit."
+  },
+  "rm-105": {
+    lifeStage: "student",
+    courseOrJob: "Media Studies student",
+    interests: ["Movie nights", "Photography", "Easy dinners", "Waterfront walks"],
+    habits: { cleanliness: 3, sleep: 3, noise: 3 },
+    lookingFor: "I want a housemate who is easy to live with, open to a chat in the kitchen, and still respectful about shared space."
+  },
+  "rm-106": {
+    lifeStage: "student",
+    courseOrJob: "English Literature student",
+    interests: ["Reading groups", "Soft playlists", "Cafe study sessions", "Baking"],
+    habits: { cleanliness: 4, sleep: 4, noise: 2 },
+    lookingFor: "Looking for someone thoughtful, tidy, and comfortable with a quieter home that still feels warm and friendly."
+  },
+  "rm-107": {
+    lifeStage: "professional",
+    courseOrJob: "Freelance graphic designer",
+    interests: ["Illustration", "Cycling", "Plants", "Low-key dinners"],
+    habits: { cleanliness: 3, sleep: 3, noise: 3 },
+    lookingFor: "I want a practical housemate who pays on time, plans guests ahead, and likes a home that feels relaxed but looked after."
+  },
+  "rm-108": {
+    lifeStage: "student",
+    courseOrJob: "Neuroscience student",
+    interests: ["Running", "Revision sprints", "Tea breaks", "Nature walks"],
+    habits: { cleanliness: 5, sleep: 5, noise: 1 },
+    lookingFor: "Looking for someone who values early nights, calm weekday routines, and a house that stays predictable and quiet."
+  },
+  "rm-109": {
+    lifeStage: "student",
+    courseOrJob: "Film Studies student",
+    interests: ["Film nights", "Cooking", "Live music", "Weekend hosting"],
+    habits: { cleanliness: 3, sleep: 2, noise: 4 },
+    lookingFor: "I want a sociable housemate who enjoys a shared dinner now and then, but still cleans up and respects the rest of the house."
+  },
+  "rm-110": {
+    lifeStage: "professional",
+    courseOrJob: "Music producer",
+    interests: ["DJ sets", "Design magazines", "Brunch spots", "Creative projects"],
+    habits: { cleanliness: 3, sleep: 2, noise: 4 },
+    lookingFor: "Looking for someone communicative who enjoys a lively but not chaotic home and is comfortable agreeing noise boundaries early."
+  },
+  "rm-111": {
+    lifeStage: "professional",
+    courseOrJob: "Economics graduate analyst",
+    interests: ["Running clubs", "Podcasts", "Meal prep", "Sunday resets"],
+    habits: { cleanliness: 4, sleep: 4, noise: 3 },
+    lookingFor: "I want a balanced housemate who is organized, friendly, and comfortable with a house that runs on clear expectations."
+  },
+  "rm-112": {
+    lifeStage: "professional",
+    courseOrJob: "Finance associate",
+    interests: ["Gym before work", "Coffee shops", "City walks", "Football"],
+    habits: { cleanliness: 4, sleep: 4, noise: 2 },
+    lookingFor: "Looking for someone polished but easygoing who wants a tidy flat, a short commute, and clear guest expectations."
+  }
+};
+
+export const listingMetaByMatchId: Record<string, ListingMeta> = {
+  "rm-101": {
+    houseType: "Terrace",
+    residentMix: "students",
+    houseEnergy: "quiet",
+    distanceMiles: 1,
+    locationTags: ["Clifton", "Whiteladies Road", "north west Bristol"],
+    moveInCategory: "within_month"
+  },
+  "rm-102": {
+    houseType: "Flat",
+    residentMix: "students",
+    houseEnergy: "quiet",
+    distanceMiles: 2,
+    locationTags: ["Redland", "Gloucester Road", "Cotham"],
+    moveInCategory: "later"
+  },
+  "rm-103": {
+    houseType: "Apartment",
+    residentMix: "students",
+    houseEnergy: "social",
+    distanceMiles: 1,
+    locationTags: ["Temple Meads", "station quarter", "central east"],
+    moveInCategory: "within_month"
+  },
+  "rm-104": {
+    houseType: "House",
+    residentMix: "professionals",
+    houseEnergy: "quiet",
+    distanceMiles: 4,
+    locationTags: ["Bishopston", "residential north", "Bristol"],
+    moveInCategory: "later"
+  },
+  "rm-105": {
+    houseType: "Flat",
+    residentMix: "mixed",
+    houseEnergy: "balanced",
+    distanceMiles: 1,
+    locationTags: ["Harbourside", "city centre", "waterfront"],
+    moveInCategory: "within_month"
+  },
+  "rm-106": {
+    houseType: "Flat",
+    residentMix: "students",
+    houseEnergy: "quiet",
+    distanceMiles: 2,
+    locationTags: ["Cotham", "university quarter", "north Bristol"],
+    moveInCategory: "later"
+  },
+  "rm-107": {
+    houseType: "House",
+    residentMix: "professionals",
+    houseEnergy: "balanced",
+    distanceMiles: 5,
+    locationTags: ["Bedminster", "South Bristol", "BS3"],
+    moveInCategory: "available_now"
+  },
+  "rm-108": {
+    houseType: "House",
+    residentMix: "students",
+    houseEnergy: "quiet",
+    distanceMiles: 5,
+    locationTags: ["Stoke Bishop", "green space", "north west"],
+    moveInCategory: "later"
+  },
+  "rm-109": {
+    houseType: "Terrace",
+    residentMix: "students",
+    houseEnergy: "social",
+    distanceMiles: 3,
+    locationTags: ["Southville", "North Street", "BS3"],
+    moveInCategory: "within_month"
+  },
+  "rm-110": {
+    houseType: "Warehouse",
+    residentMix: "mixed",
+    houseEnergy: "social",
+    distanceMiles: 2,
+    locationTags: ["Montpelier", "creative quarter", "Stokes Croft"],
+    moveInCategory: "later"
+  },
+  "rm-111": {
+    houseType: "House",
+    residentMix: "mixed",
+    houseEnergy: "balanced",
+    distanceMiles: 2,
+    locationTags: ["Totterdown", "Temple Meads", "hilltop"],
+    moveInCategory: "within_month"
+  },
+  "rm-112": {
+    houseType: "Apartment",
+    residentMix: "professionals",
+    houseEnergy: "quiet",
+    distanceMiles: 1,
+    locationTags: ["Redcliffe", "Temple Meads", "city centre"],
+    moveInCategory: "later"
+  }
+};

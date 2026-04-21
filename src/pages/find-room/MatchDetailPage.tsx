@@ -1,12 +1,25 @@
+import MatchInsights from "../../components/MatchInsights";
 import PhotoCarousel from "../../components/PhotoCarousel";
+import RichFlatmateProfile from "../../components/RichFlatmateProfile";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPerPersonMonthly, formatPrice, getOccupantCount } from "../../lib/findRoom";
-import { ScoredRoomMatch } from "../../types";
+import {
+  describeHouseEnergy,
+  describeResidentMix,
+  formatMoveIn,
+  formatPerPersonMonthly,
+  formatPrice,
+  getListingMeta,
+  getOccupantCount
+} from "../../lib/findRoom";
+import { FiltersState, MatchTarget, ProfileNotesState, ScoredRoomMatch } from "../../types";
 
 type MatchDetailPageProps = {
   match: ScoredRoomMatch | null;
+  filters: FiltersState;
+  userScores: MatchTarget;
+  profileNotes: ProfileNotesState;
   backLabel: string;
   onBack: () => void;
   onSave: () => void;
@@ -19,6 +32,9 @@ type MatchDetailPageProps = {
 
 function MatchDetailPage({
   match,
+  filters,
+  userScores,
+  profileNotes,
   backLabel,
   onBack,
   onSave,
@@ -41,6 +57,7 @@ function MatchDetailPage({
   }
 
   const detail = roomDetailById[match.id];
+  const listingMeta = getListingMeta(match.id);
   const occupantCount = getOccupantCount(detail.currentOccupants);
   const contactLabel = canOpenChat ? "Message tenants" : "I'm interested";
   const handleContactAction = canOpenChat ? onOpenChat : onOpenIntro;
@@ -78,21 +95,7 @@ function MatchDetailPage({
         </div>
 
         <div className="detail-tenant-layout">
-          <div className="tenant-spotlight">
-            <div className="tenant-avatar" aria-hidden="true">
-              {match.roommate.name
-                .split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2)}
-            </div>
-            <div className="tenant-spotlight-copy">
-              <h3>{match.roommate.name}</h3>
-              <p className="listing-meta">{match.roommate.age} years old | {match.roommate.major}</p>
-              <p className="flatmate-summary">{match.roommate.vibe}</p>
-              <p>{match.roommate.bio}</p>
-            </div>
-          </div>
+          <RichFlatmateProfile match={match} />
 
           <div className="detail-inline-stack">
             <div className="occupancy-row">
@@ -116,11 +119,14 @@ function MatchDetailPage({
             <div className="detail-text-block">
               <p className="panel-kicker">House vibe</p>
               <ul className="bullet-list">
-                {detail.houseHighlights.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+                <li>{describeHouseEnergy(listingMeta.houseEnergy)}</li>
+                <li>{describeResidentMix(listingMeta.residentMix)}</li>
+                <li>{listingMeta.houseType}</li>
+                <li>{detail.houseHighlights[0]}</li>
               </ul>
             </div>
+
+            <MatchInsights match={match} filters={filters} userScores={userScores} profileNotes={profileNotes} />
           </div>
         </div>
       </section>
@@ -141,6 +147,7 @@ function MatchDetailPage({
           <article className="detail-card"><strong>Deposit</strong><span>{formatPrice(detail.deposit)}</span></article>
           <article className="detail-card"><strong>Bills</strong><span>{detail.bills}</span></article>
           <article className="detail-card"><strong>Room size</strong><span>{detail.roomSize}</span></article>
+          <article className="detail-card"><strong>House type</strong><span>{listingMeta.houseType}</span></article>
           <article className="detail-card"><strong>Availability</strong><span>{detail.availableFromNote}</span></article>
         </div>
 

@@ -1,10 +1,20 @@
+import MatchInsights from "../../components/MatchInsights";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
-import { ScoredRoomMatch } from "../../types";
+import {
+  formatMoveIn,
+  formatPerPersonMonthly,
+  getFlatmateProfile,
+  getLifeStageFieldLabel,
+  getOccupantCount
+} from "../../lib/findRoom";
+import { FiltersState, MatchTarget, ProfileNotesState, ScoredRoomMatch } from "../../types";
 
 type MatchFeedPageProps = {
   currentMatch: ScoredRoomMatch | null;
+  filters: FiltersState;
+  userScores: MatchTarget;
+  profileNotes: ProfileNotesState;
   currentIndex: number;
   total: number;
   onBack: () => void;
@@ -17,6 +27,9 @@ type MatchFeedPageProps = {
 
 function MatchFeedPage({
   currentMatch,
+  filters,
+  userScores,
+  profileNotes,
   currentIndex,
   total,
   onBack,
@@ -40,6 +53,7 @@ function MatchFeedPage({
   }
 
   const detail = roomDetailById[currentMatch.id];
+  const flatmateProfile = getFlatmateProfile(currentMatch.id);
   const occupantCount = getOccupantCount(detail.currentOccupants);
 
   return (
@@ -86,8 +100,18 @@ function MatchFeedPage({
               <span className="listing-subcopy">{detail.roomSize} | {detail.bathrooms} bathrooms</span>
             </div>
 
-            <p>{currentMatch.roommate.name}, {currentMatch.roommate.age} | {currentMatch.roommate.major}</p>
+            <p>
+              {currentMatch.roommate.name}, {currentMatch.roommate.age} | {getLifeStageFieldLabel(flatmateProfile.lifeStage)}: {flatmateProfile.courseOrJob}
+            </p>
             <p className="flatmate-summary">Flatmate vibe: {currentMatch.roommate.vibe}</p>
+
+            <MatchInsights
+              match={currentMatch}
+              filters={filters}
+              userScores={userScores}
+              profileNotes={profileNotes}
+              variant="compact"
+            />
 
             <div className="listing-facts">
               <span>Move-in {formatMoveIn(currentMatch.moveIn)}</span>

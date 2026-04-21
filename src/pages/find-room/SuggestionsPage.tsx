@@ -1,8 +1,19 @@
+import MatchInsights from "../../components/MatchInsights";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
 import TopBackButton from "../../components/TopBackButton";
 import { roomDetailById } from "../../data/roomDetails";
-import { formatMoveIn, formatPerPersonMonthly, getOccupantCount } from "../../lib/findRoom";
-import { ScoredRoomMatch } from "../../types";
+import {
+  describeHouseEnergy,
+  formatMoveIn,
+  formatPerPersonMonthly,
+  getFlatmateProfile,
+  getHabitDescriptor,
+  getLifeStageBadgeLabel,
+  getLifeStageFieldLabel,
+  getListingMeta,
+  getOccupantCount
+} from "../../lib/findRoom";
+import { FiltersState, MatchTarget, ProfileNotesState, ScoredRoomMatch } from "../../types";
 
 function formatRoomBasics(roomSize: string, bathrooms: number) {
   return `${roomSize} | ${bathrooms} ${bathrooms === 1 ? "bathroom" : "bathrooms"}`;
@@ -10,12 +21,15 @@ function formatRoomBasics(roomSize: string, bathrooms: number) {
 
 type SuggestionsPageProps = {
   matches: ScoredRoomMatch[];
+  filters: FiltersState;
+  userScores: MatchTarget;
+  profileNotes: ProfileNotesState;
   onBack: () => void;
   onOpenFeed: () => void;
   onInspect: (matchId: string) => void;
 };
 
-function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: SuggestionsPageProps) {
+function SuggestionsPage({ matches, filters, userScores, profileNotes, onBack, onOpenFeed, onInspect }: SuggestionsPageProps) {
   return (
     <section className="screen branch-screen">
       <TopBackButton label="Back to filters" onClick={onBack} />
@@ -40,6 +54,8 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
         <div className="suggestion-stack">
           {matches.map((match) => {
             const detail = roomDetailById[match.id];
+            const listingMeta = getListingMeta(match.id);
+            const flatmateProfile = getFlatmateProfile(match.id);
             const coverPhoto = detail.photos[0];
             const occupantCount = getOccupantCount(detail.currentOccupants);
 
@@ -75,15 +91,24 @@ function SuggestionsPage({ matches, onBack, onOpenFeed, onInspect }: Suggestions
                   <div>
                     <p className="panel-kicker">Roommate</p>
                     <h4>{match.roommate.name}</h4>
+                    <p className="listing-meta">
+                      {match.roommate.age} | {getLifeStageFieldLabel(flatmateProfile.lifeStage)}: {flatmateProfile.courseOrJob}
+                    </p>
                     <p>{match.roommate.bio}</p>
+                    <div className="tag-preview">
+                      <span className="tag-chip">{getLifeStageBadgeLabel(flatmateProfile.lifeStage)}</span>
+                      <span className="tag-chip">{describeHouseEnergy(listingMeta.houseEnergy)}</span>
+                      <span className="tag-chip">{getHabitDescriptor("cleanliness", flatmateProfile.habits.cleanliness)}</span>
+                    </div>
                   </div>
                   <div>
-                    <p className="panel-kicker">Why this match</p>
-                    <ul className="bullet-list">
-                      {match.whyMatch.map((reason) => (
-                        <li key={reason}>{reason}</li>
-                      ))}
-                    </ul>
+                    <MatchInsights
+                      match={match}
+                      filters={filters}
+                      userScores={userScores}
+                      profileNotes={profileNotes}
+                      variant="compact"
+                    />
                   </div>
                 </div>
 

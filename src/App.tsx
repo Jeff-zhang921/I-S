@@ -39,7 +39,7 @@ import { defaultFilters, roomMatches } from "./data/findRoom";
 import { initialOwnerListing, ownerCandidateMatches } from "./data/ownerRoom";
 import { buildFakeGroupReply, groupChatThreads } from "./data/groupChat";
 import { buildFakeOwnerGroupReply, ownerGroupChatThreads } from "./data/ownerGroupChat";
-import { getFilteredMatches, scoreRoomMatch, toggleAmenity } from "./lib/findRoom";
+import { getFilteredMatches, scoreRoomMatch, toggleAmenity, toggleStringFilter } from "./lib/findRoom";
 import { rankOwnerCandidates } from "./lib/ownerRoom";
 import {
   getCategoryAverage,
@@ -632,7 +632,35 @@ function App() {
   }
 
   function updateFilters<K extends keyof typeof filters>(field: K, value: (typeof filters)[K]) {
-    setFilters((current) => ({ ...current, [field]: value }));
+    setFilters((current) => {
+      const next = { ...current, [field]: value };
+
+      if (next.minRent > next.maxRent) {
+        if (field === "minRent") {
+          next.maxRent = next.minRent;
+        } else if (field === "maxRent") {
+          next.minRent = next.maxRent;
+        }
+      }
+
+      if (next.occupantCountMin > next.occupantCountMax) {
+        if (field === "occupantCountMin") {
+          next.occupantCountMax = next.occupantCountMin;
+        } else if (field === "occupantCountMax") {
+          next.occupantCountMin = next.occupantCountMax;
+        }
+      }
+
+      if (next.quietHouse && next.socialHouse) {
+        if (field === "quietHouse") {
+          next.socialHouse = false;
+        } else if (field === "socialHouse") {
+          next.quietHouse = false;
+        }
+      }
+
+      return next;
+    });
   }
 
   function getVisibleQuestionBank(privacyLevel = account.privacyLevel) {
@@ -1515,6 +1543,12 @@ function App() {
                 amenities: toggleAmenity(current.amenities, amenity)
               }))
             }
+            onToggleHouseType={(houseType) =>
+              setFilters((current) => ({
+                ...current,
+                houseTypes: toggleStringFilter(current.houseTypes, houseType)
+              }))
+            }
             onBack={() => setScreen("browseListings")}
             onApply={() => {
               setFeedIndex(0);
@@ -1527,6 +1561,9 @@ function App() {
         return (
           <SuggestionsPage
             matches={filteredMatches}
+            filters={filters}
+            userScores={userScores}
+            profileNotes={profileNotes}
             onBack={() => setScreen("filters")}
             onOpenFeed={handleOpenFeed}
             onInspect={(matchId) => openMatchDetail(matchId, "suggestions")}
@@ -1537,6 +1574,9 @@ function App() {
         return (
           <MatchFeedPage
             currentMatch={currentFeedMatch}
+            filters={filters}
+            userScores={userScores}
+            profileNotes={profileNotes}
             currentIndex={feedIndex}
             total={filteredMatches.length}
             onBack={() => setScreen("suggestions")}
@@ -1552,8 +1592,11 @@ function App() {
         return (
           <MatchDetailPage
             match={selectedMatch}
+            filters={filters}
+            userScores={userScores}
+            profileNotes={profileNotes}
             backLabel={`Back to ${getRenterScreenLabel(detailReturnScreen === "sendIntro" ? introBackScreen : detailReturnScreen)}`}
-            onBack={() => setScreen(detailReturnScreen)}
+            onBack={() => setScreen(detailReturnScreen === "sendIntro" ? introBackScreen : detailReturnScreen)}
             onSave={() => handleSaveMatch(selectedMatch?.id ?? null)}
             canOpenChat={selectedMatch ? contactedIds.includes(selectedMatch.id) : false}
             onOpenChat={() => selectedMatch && openGroupChat(selectedMatch.id)}
