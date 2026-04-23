@@ -2,7 +2,10 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import AppHeader from "./components/AppHeader";
 import BottomNav from "./components/BottomNav";
 import AccountPage from "./pages/AccountPage";
-import VerifyPage from "./pages/VerifyPage";
+import CommitmentLevelPage from "./pages/CommitmentLevelPage";
+import CitySelectionPage from "./pages/CitySelectionPage";
+import ProfileVisibilityPage from "./pages/ProfileVisibilityPage";
+import VerificationPage from "./pages/VerificationPage";
 import QuizPage from "./pages/QuizPage";
 import SummaryPage from "./pages/SummaryPage";
 import PathChoicePage from "./pages/PathChoicePage";
@@ -48,7 +51,8 @@ import {
   isQuestionAnswered,
   isQuestionVisible,
   matchReasons,
-  validateAccount
+  validateAccount,
+  validateTargetCity
 } from "./lib/onboarding";
 import {
   AccountState,
@@ -92,10 +96,13 @@ const ownerNavItems = [
 ] as const;
 const onboardingHeaderItems = [
   { id: "account", label: "Account" },
-  { id: "verify", label: "Trust" },
+  { id: "citySelection", label: "City" },
+  { id: "verify", label: "Verify" },
+  { id: "accountDetails", label: "Visibility" },
+  { id: "commitmentLevel", label: "Commitment" },
   { id: "quiz", label: "Signals" },
   { id: "summary", label: "Profile" },
-  { id: "pathChoice", label: "Branch" }
+  { id: "pathChoice", label: "Goal" }
 ] as const;
 const ONBOARDING_DRAFT_STORAGE_KEY = "ishare-onboarding-draft";
 
@@ -106,6 +113,20 @@ type OnboardingDraftSnapshot = {
   questionIndex: number;
   savedAt: string;
 };
+
+function normalizeAccountState(account?: Partial<AccountState> | null): AccountState {
+  return {
+    fullName: account?.fullName ?? initialAccountState.fullName,
+    email: account?.email ?? initialAccountState.email,
+    phone: account?.phone ?? initialAccountState.phone,
+    password: account?.password ?? initialAccountState.password,
+    targetCity: account?.targetCity ?? initialAccountState.targetCity,
+    verificationMethod: account?.verificationMethod ?? initialAccountState.verificationMethod,
+    verificationCode: account?.verificationCode ?? initialAccountState.verificationCode,
+    privacyLevel: account?.privacyLevel ?? initialAccountState.privacyLevel,
+    commitmentLevel: account?.commitmentLevel ?? initialAccountState.commitmentLevel
+  };
+}
 
 function getRenterScreenLabel(screen: DetailReturnScreen | IntroBackScreen | RenterNavScreen | "filters") {
   switch (screen) {
@@ -316,26 +337,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    try {
-      const rawDraft = window.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY);
-      if (!rawDraft) {
-        return;
-      }
-
-      const parsedDraft = JSON.parse(rawDraft) as OnboardingDraftSnapshot;
-      if (!parsedDraft?.account || !parsedDraft?.quizAnswers || !parsedDraft?.profileNotes) {
-        return;
-      }
-
-      setAccount(parsedDraft.account);
-      setQuizAnswers(parsedDraft.quizAnswers);
-      setProfileNotes(parsedDraft.profileNotes);
-      setQuestionIndex(parsedDraft.questionIndex ?? 0);
-      setHasSavedOnboardingDraft(true);
-      setStatus({ kind: "success", message: "Saved onboarding draft loaded. Resume when you are ready." });
-    } catch {
-      window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
-    }
+    loadSavedOnboardingDraft("Saved onboarding draft loaded. Resume when you are ready.");
   }, []);
 
   const activeQuestionBank = useMemo(
@@ -540,10 +542,25 @@ function App() {
           title: "Profile ignition",
           subtitle: "Set the base identity before the compatibility engine opens."
         };
+      case "citySelection":
+        return {
+          title: "City targeting",
+          subtitle: "Capture the market this account is aiming at before verification starts."
+        };
       case "verify":
         return {
-          title: "Trust layer",
-          subtitle: "Verification and privacy controls shape what the app reveals later."
+          title: "Verification layer",
+          subtitle: "Confirm the contact method before profile visibility and commitment are configured."
+        };
+      case "accountDetails":
+        return {
+          title: "Visibility settings",
+          subtitle: "Choose who can see the profile now that verification is complete."
+        };
+      case "commitmentLevel":
+        return {
+          title: "Move intent",
+          subtitle: "Set how ready this account is to move before the questionnaire opens."
         };
       case "quiz":
         return {
@@ -553,7 +570,7 @@ function App() {
       case "summary":
         return {
           title: "Compatibility profile",
-          subtitle: "Review the signal mix before choosing the live renter or owner branch."
+          subtitle: "Review the signal mix before choosing what you want to do next."
         };
       case "pathChoice":
         return {
@@ -575,12 +592,42 @@ function App() {
     setHasSavedOnboardingDraft(false);
   }
 
+  function loadSavedOnboardingDraft(successMessage?: string) {
+    try {
+      const rawDraft = window.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY);
+      if (!rawDraft) {
+        return false;
+      }
+
+      const parsedDraft = JSON.parse(rawDraft) as OnboardingDraftSnapshot;
+      if (!parsedDraft?.account || !parsedDraft?.quizAnswers || !parsedDraft?.profileNotes) {
+        return false;
+      }
+
+      setAccount(normalizeAccountState(parsedDraft.account));
+      setQuizAnswers(parsedDraft.quizAnswers);
+      setProfileNotes(parsedDraft.profileNotes);
+      setQuestionIndex(parsedDraft.questionIndex ?? 0);
+      setHasSavedOnboardingDraft(true);
+
+      if (successMessage) {
+        setStatus({ kind: "success", message: successMessage });
+      }
+
+      return true;
+    } catch {
+      window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+      setHasSavedOnboardingDraft(false);
+      return false;
+    }
+  }
+
   function saveOnboardingDraft(nextProfileNotes?: Partial<ProfileNotesState>) {
     const mergedProfileNotes = nextProfileNotes
       ? { ...profileNotes, ...nextProfileNotes }
       : profileNotes;
     const payload: OnboardingDraftSnapshot = {
-      account,
+      account: normalizeAccountState(account),
       quizAnswers,
       profileNotes: mergedProfileNotes,
       questionIndex: safeQuestionIndex,
@@ -599,16 +646,22 @@ function App() {
     setStatus(emptyStatus);
   }
 
-  function resetPrototype() {
-    clearSavedOnboardingDraft();
+  function logoutCurrentSession(options?: { clearSavedDraft?: boolean; statusMessage?: string }) {
+    const { clearSavedDraft = true, statusMessage } = options ?? {};
+
+    if (clearSavedDraft) {
+      clearSavedOnboardingDraft();
+    } else {
+      setHasSavedOnboardingDraft(Boolean(window.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY)));
+    }
+
     setScreen("account");
     setJourneyMode("renter");
     setAccount(initialAccountState);
     setQuizAnswers({});
     setProfileNotes(initialProfileNotes);
     setQuestionIndex(0);
-    setHasSavedOnboardingDraft(false);
-    setStatus(emptyStatus);
+    setStatus(statusMessage ? { kind: "success", message: statusMessage } : emptyStatus);
     setFilters(defaultFilters);
     setFeedIndex(0);
     setSelectedMatchId(null);
@@ -899,20 +952,26 @@ function App() {
     }));
   }
 
-  function handleUseStarter(values: Pick<AccountState, "fullName" | "email" | "phone" | "password">) {
+  function handleUseStarter(values: Pick<AccountState, "fullName" | "email" | "phone" | "password" | "targetCity">) {
     setAccount((current) => ({ ...current, ...values }));
     setStatus({ kind: "success", message: "Starter account loaded. Continue when ready." });
   }
 
   function handleResumeSavedDraft() {
+    if (!loadSavedOnboardingDraft("Resumed your saved onboarding draft.")) {
+      setStatus({ kind: "error", message: "There is no saved onboarding draft to resume." });
+      return;
+    }
+
     setScreen("quiz");
-    setStatus({ kind: "success", message: "Resumed your saved onboarding draft." });
   }
 
-  function handleSaveAndExit(nextProfileNotes?: Partial<ProfileNotesState>) {
+  function handleSaveAndQuit(nextProfileNotes?: Partial<ProfileNotesState>) {
     saveOnboardingDraft(nextProfileNotes);
-    setScreen("account");
-    setStatus({ kind: "success", message: "Onboarding draft saved. Come back anytime and resume where you left off." });
+    logoutCurrentSession({
+      clearSavedDraft: false,
+      statusMessage: "Progress saved. You have been signed out and can resume later."
+    });
   }
 
   function handleAccountSubmit(event: FormEvent<HTMLFormElement>) {
@@ -924,17 +983,53 @@ function App() {
       return;
     }
 
+    setScreen("citySelection");
+    setStatus({ kind: "success", message: "Account details look valid. Next choose the target city." });
+  }
+
+  function handleAccountDetailsSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setScreen("commitmentLevel");
+    setStatus({
+      kind: "success",
+      message: `${privacyLevelMeta.summaryLabel} selected. Next set how ready this account is to move.`
+    });
+  }
+
+  function handleCitySelectionSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const validationMessage = validateTargetCity(account.targetCity);
+    if (validationMessage) {
+      setStatus({ kind: "error", message: validationMessage });
+      return;
+    }
+
     setScreen("verify");
-    setStatus({ kind: "success", message: "Account details look valid for this prototype." });
+    setStatus({
+      kind: "success",
+      message: `${account.targetCity.trim()} saved as the target city. Next confirm the contact method.`
+    });
   }
 
   function handleVerifySubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (account.verificationCode.trim() !== DEMO_VERIFICATION_CODE) {
-      setStatus({ kind: "error", message: "Use the demo verification code before starting the questionnaire." });
+      setStatus({ kind: "error", message: "Use the demo verification code before continuing." });
       return;
     }
+
+    setScreen("accountDetails");
+    setStatus({
+      kind: "success",
+      message: "Verification complete. Next choose who can see this profile."
+    });
+  }
+
+  function handleCommitmentLevelSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     moveToNextUnansweredQuestion(account.privacyLevel);
     setScreen("quiz");
@@ -965,7 +1060,7 @@ function App() {
 
   function handleQuizBack() {
     if (safeQuestionIndex === 0) {
-      setScreen("verify");
+      setScreen("commitmentLevel");
       clearStatus();
       return;
     }
@@ -1008,11 +1103,11 @@ function App() {
     setStatus({ kind: "success", message: "Saved to the profile. Continue with the next question." });
   }
 
-  function handleContinueToBranch() {
+  function handleContinueToGoal() {
     if (answeredCount < totalQuestions) {
       moveToNextUnansweredQuestion();
       setScreen("quiz");
-      setStatus({ kind: "error", message: "Finish the remaining questions before branching." });
+      setStatus({ kind: "error", message: "Finish the remaining questions before choosing what to do next." });
       return;
     }
 
@@ -1382,19 +1477,61 @@ function App() {
           />
         );
 
-      case "verify":
+      case "accountDetails":
         return (
-          <VerifyPage
+          <ProfileVisibilityPage
             account={account}
-            demoCode={DEMO_VERIFICATION_CODE}
             privacyLevelOptions={privacyLevelOptions}
+            status={status}
+            onChange={updateAccount}
+            onBack={() => {
+              setScreen("verify");
+              clearStatus();
+            }}
+            onSubmit={handleAccountDetailsSubmit}
+          />
+        );
+
+      case "citySelection":
+        return (
+          <CitySelectionPage
+            account={account}
             status={status}
             onChange={updateAccount}
             onBack={() => {
               setScreen("account");
               clearStatus();
             }}
+            onSubmit={handleCitySelectionSubmit}
+          />
+        );
+
+      case "verify":
+        return (
+          <VerificationPage
+            account={account}
+            demoCode={DEMO_VERIFICATION_CODE}
+            status={status}
+            onChange={updateAccount}
+            onBack={() => {
+              setScreen("citySelection");
+              clearStatus();
+            }}
             onSubmit={handleVerifySubmit}
+          />
+        );
+
+      case "commitmentLevel":
+        return (
+          <CommitmentLevelPage
+            account={account}
+            status={status}
+            onChange={updateAccount}
+            onBack={() => {
+              setScreen("accountDetails");
+              clearStatus();
+            }}
+            onSubmit={handleCommitmentLevelSubmit}
           />
         );
 
@@ -1421,7 +1558,7 @@ function App() {
             onScaleCommit={handleScaleCommit}
             onBack={handleQuizBack}
             onJumpToSection={jumpToQuestionSection}
-            onSaveAndExit={handleSaveAndExit}
+            onSaveAndExit={handleSaveAndQuit}
             onTextChange={handleTextChange}
             onTextSubmit={handleTextSubmit}
             isQuestionAnswered={(question) => isQuestionAnswered(question, quizAnswers, profileNotes)}
@@ -1442,13 +1579,14 @@ function App() {
               setScreen("quiz");
               clearStatus();
             }}
-            onContinue={handleContinueToBranch}
+            onContinue={handleContinueToGoal}
           />
         );
 
       case "pathChoice":
         return (
           <PathChoicePage
+            targetCity={account.targetCity}
             onBack={() => {
               setQuestionIndex(Math.max(totalQuestions - 1, 0));
               setScreen("summary");
@@ -1612,7 +1750,7 @@ function App() {
             contactedCount={ownerContactedIds.length}
             onBack={() => setScreen("ownerSavedList")}
             onOpenChats={() => setScreen("ownerGroupChat")}
-            onBackToSignIn={resetPrototype}
+            onBackToSignIn={() => logoutCurrentSession()}
           />
         );
 
@@ -1806,7 +1944,7 @@ function App() {
             contactedCount={contactedIds.length}
             onBack={() => setScreen("savedList")}
             onOpenChats={() => setScreen("groupChat")}
-            onBackToSignIn={resetPrototype}
+            onBackToSignIn={() => logoutCurrentSession()}
           />
         );
     }

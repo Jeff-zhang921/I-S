@@ -86,7 +86,7 @@ test.describe("Roommate Match UI audit", () => {
     }
 
     async function advanceQuiz() {
-      const summaryButton = page.getByRole("button", { name: /Continue to branch/i });
+      const summaryButton = page.getByRole("button", { name: /Choose your goal/i });
 
       while (!(await summaryButton.isVisible().catch(() => false))) {
         const prompt = page.locator(".question-card-active h3");
@@ -126,48 +126,64 @@ test.describe("Roommate Match UI audit", () => {
       await capture("01-account");
 
       await page.getByRole("button", { name: /Demo account/i }).click();
-      await page.getByRole("button", { name: /Continue to verification/i }).click();
-
-      await expect(page.getByRole("heading", { name: /Confirm the account signal/i })).toBeVisible();
+      await page.getByRole("button", { name: /Continue to target city/i }).click();
+      await expect(page.getByRole("heading", { name: /Choose where this account is active/i })).toBeVisible();
       await expectTopBack(/^Back$/i);
-      await capture("02-verify");
+      await expect(page.getByLabel(/Target city/i)).toHaveValue("Bristol");
+      await capture("02-city-selection");
+
+      await page.getByRole("button", { name: /Continue to verification/i }).click();
+      await expect(page.getByRole("heading", { name: /Confirm the account signal/i })).toBeVisible();
+      await expect(page.getByText(/Government ID/i)).toHaveCount(0);
+      await expectTopBack(/^Back$/i);
+      await capture("03-verify");
+
+      await page.getByRole("button", { name: /Continue to profile visibility/i }).click();
+      await expect(page.getByRole("heading", { name: /Choose who can see this profile before matching starts/i })).toBeVisible();
+      await expectTopBack(/^Back$/i);
+      await capture("04-profile-visibility");
+
+      await page.getByRole("button", { name: /Continue to commitment level/i }).click();
+      await expect(page.getByRole("heading", { name: /Set how ready this account is to move/i })).toBeVisible();
+      await expectTopBack(/^Back$/i);
+      await capture("05-commitment-level");
 
       await page.getByRole("button", { name: /Start questionnaire/i }).click();
       await expect(page.locator(".question-card-active")).toBeVisible();
       await expectTopBack(/^Back$/i);
-      await capture("03-quiz");
+      await capture("06-quiz");
 
       await advanceQuiz();
-      await expect(page.getByRole("button", { name: /Continue to branch/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Choose your goal/i })).toBeVisible();
       await expectTopBack(/Back to questions/i);
-      await capture("04-summary");
+      await capture("07-summary");
 
-      await page.getByRole("button", { name: /Continue to branch/i }).click();
-      await expect(page.getByRole("heading", { name: /Choose where the live experience branches/i })).toBeVisible();
+      await page.getByRole("button", { name: /Choose your goal/i }).click();
+      await expect(page.getByRole("heading", { name: /Choose your goal/i })).toBeVisible();
       await expectTopBack(/Back to profile/i);
-      await capture("05-path-choice");
+      await capture("08-path-choice");
     }
 
     async function runRenterFlow() {
       await page.getByRole("button", { name: /Start renter journey/i }).click();
       await expect(page.getByRole("heading", { name: /Browse available rooms in Bristol/i })).toBeVisible();
-      await expectTopBack(/Back to branch/i);
-      await capture("06-renter-browse");
+      await expectTopBack(/Back to options/i);
+      await capture("09-renter-browse");
 
       await page.getByRole("button", { name: /Adjust filters/i }).click();
       await expect(page.getByRole("heading", { name: /Set filters before matching/i })).toBeVisible();
       await expectTopBack(/Back to browse/i);
-      await capture("07-renter-filters");
+      await capture("10-renter-filters");
 
       await page.locator(".screen-flow-nav").getByRole("button", { name: /Apply filters/i }).click();
       await expect(page.getByRole("heading", { name: /Suggested rooms and roommates/i })).toBeVisible();
       await expectTopBack(/Back to filters/i);
-      await capture("08-renter-suggestions");
+      await capture("11-renter-suggestions");
 
       await page.locator(".suggestion-card").first().click();
       await expect(page.locator(".detail-carousel-panel")).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("09-renter-match-detail");
+      await capture("12-renter-match-detail");
 
       await page.getByRole("button", { name: /Back to suggestions/i }).first().click();
       await expect(page.getByRole("heading", { name: /Suggested rooms and roommates/i })).toBeVisible();
@@ -175,7 +191,7 @@ test.describe("Roommate Match UI audit", () => {
 
       await expect(page.locator(".feed-card-docked")).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("10-renter-match-feed");
+      await capture("13-renter-match-feed");
 
       await page.getByRole("button", { name: /^Like$/i }).click();
       await expect(page.getByRole("heading", { name: /Send intro or quick questions/i })).toHaveCount(0);
@@ -184,33 +200,33 @@ test.describe("Roommate Match UI audit", () => {
       await page.locator(".suggestion-card").first().click();
       await expect(page.locator(".detail-action-footer").getByRole("button", { name: /I'm interested/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("11-renter-match-detail-liked");
+      await capture("14-renter-match-detail-liked");
 
       await page.getByRole("button", { name: /^Like$/i }).click();
       await page.locator(".detail-action-footer").getByRole("button", { name: /I'm interested/i }).click();
       await expect(page.getByRole("heading", { name: /Tell the tenants you are interested/i })).toBeVisible();
       await expectTopBack(/Back to room detail/i);
-      await capture("12-renter-send-intro");
+      await capture("15-renter-send-intro");
 
       await page.locator(".send-intro-screen > .button-row").getByRole("button", { name: /^Message tenants$/i }).click();
       await expect(page.locator(".chat-thread-body")).toBeVisible();
       await expectTopBack(/Back to chats/i);
-      await capture("13-renter-chat-thread");
+      await capture("16-renter-chat-thread");
 
       await page.getByRole("button", { name: /Back to chats/i }).first().click();
       await expect(page.getByRole("heading", { name: /House group chats/i })).toBeVisible();
       await expectTopBack(/Back to interested houses/i);
-      await capture("14-renter-group-chat");
+      await capture("17-renter-group-chat");
 
       await page.locator(".bottom-nav").getByRole("button", { name: /^Saved$/i }).click();
       await expect(page.getByRole("heading", { name: /Saved, liked, and contacted houses/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("15-renter-saved-list");
+      await capture("18-renter-saved-list");
 
       await page.locator(".bottom-nav").getByRole("button", { name: /^Profile$/i }).click();
       await expect(page.getByRole("heading", { name: /Your renter profile/i })).toBeVisible();
       await expectTopBack(/Back to interested houses/i);
-      await capture("16-renter-profile");
+      await capture("19-renter-profile");
 
       await page.getByRole("button", { name: /Sign out/i }).click();
       await expect(page.getByRole("heading", { name: /Launch the profile/i })).toBeVisible();
@@ -218,27 +234,30 @@ test.describe("Roommate Match UI audit", () => {
 
     async function runOwnerFlow() {
       await page.getByRole("button", { name: /Demo account/i }).click();
+      await page.getByRole("button", { name: /Continue to target city/i }).click();
       await page.getByRole("button", { name: /Continue to verification/i }).click();
+      await page.getByRole("button", { name: /Continue to profile visibility/i }).click();
+      await page.getByRole("button", { name: /Continue to commitment level/i }).click();
       await page.getByRole("button", { name: /Start questionnaire/i }).click();
       await advanceQuiz();
-      await page.getByRole("button", { name: /Continue to branch/i }).click();
+      await page.getByRole("button", { name: /Choose your goal/i }).click();
 
-      await expect(page.getByRole("heading", { name: /Choose where the live experience branches/i })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /Choose your goal/i })).toBeVisible();
       await page.getByRole("button", { name: /Start owner journey/i }).click();
 
       await expect(page.getByRole("heading", { name: /Create your listing and shortlist housemates/i })).toBeVisible();
-      await expectTopBack(/Back to branch/i);
-      await capture("16-owner-listing");
+      await expectTopBack(/Back to options/i);
+      await capture("20-owner-listing");
 
       await page.locator(".screen-flow-nav").getByRole("button", { name: /Continue to renter matches/i }).click();
       await expect(page.getByRole("heading", { name: /Suggested renters for your listing/i })).toBeVisible();
       await expectTopBack(/Back to listing/i);
-      await capture("17-owner-suggestions");
+      await capture("21-owner-suggestions");
 
       await page.locator(".owner-candidate-card").first().click();
       await expect(page.locator(".detail-action-footer").getByRole("button", { name: /^Send intro$/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("18-owner-candidate-detail");
+      await capture("22-owner-candidate-detail");
 
       await page.getByRole("button", { name: /Back to suggestions/i }).first().click();
       await expect(page.getByRole("heading", { name: /Suggested renters for your listing/i })).toBeVisible();
@@ -246,7 +265,7 @@ test.describe("Roommate Match UI audit", () => {
 
       await expect(page.locator(".feed-card-docked")).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("19-owner-match-feed");
+      await capture("23-owner-match-feed");
 
       await page.getByRole("button", { name: /^Like$/i }).click();
       await expect(page.getByRole("heading", { name: /Send intro or quick questions/i })).toHaveCount(0);
@@ -255,33 +274,33 @@ test.describe("Roommate Match UI audit", () => {
       await page.locator(".owner-candidate-card").first().click();
       await expect(page.getByRole("button", { name: /Send intro to unlock chat/i })).toBeDisabled();
       await expectTopBack(/Back to suggestions/i);
-      await capture("20-owner-candidate-detail-liked");
+      await capture("24-owner-candidate-detail-liked");
 
       await page.getByRole("button", { name: /^Like$/i }).click();
       await page.locator(".detail-action-footer").getByRole("button", { name: /^Send intro$/i }).click();
       await expect(page.getByRole("heading", { name: /Send intro or quick questions/i })).toBeVisible();
       await expectTopBack(/Back to renter detail/i);
-      await capture("21-owner-send-intro");
+      await capture("25-owner-send-intro");
 
       await page.locator(".send-intro-screen > .button-row").getByRole("button", { name: /^Send intro$/i }).click();
       await expect(page.locator(".chat-thread-body")).toBeVisible();
       await expectTopBack(/Back to chats/i);
-      await capture("22-owner-chat-thread");
+      await capture("26-owner-chat-thread");
 
       await page.getByRole("button", { name: /Back to chats/i }).first().click();
       await expect(page.getByRole("heading", { name: /Renter conversations/i })).toBeVisible();
       await expectTopBack(/Back to shortlist/i);
-      await capture("23-owner-group-chat");
+      await capture("27-owner-group-chat");
 
       await page.locator(".bottom-nav").getByRole("button", { name: /^Saved$/i }).click({ timeout: 10_000 });
       await expect(page.getByRole("heading", { name: /Shortlisted and contacted renters/i })).toBeVisible();
       await expectTopBack(/Back to suggestions/i);
-      await capture("24-owner-saved-list");
+      await capture("28-owner-saved-list");
 
       await page.locator(".bottom-nav").getByRole("button", { name: /^Profile$/i }).click();
       await expect(page.getByRole("heading", { name: /Your host profile and room listing/i })).toBeVisible();
       await expectTopBack(/Back to shortlist/i);
-      await capture("25-owner-profile");
+      await capture("29-owner-profile");
     }
 
     try {

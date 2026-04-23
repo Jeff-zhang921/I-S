@@ -43,7 +43,7 @@ function SendIntroPage({
       <TopBackButton label={backLabel} onClick={onBack} />
 
       <div className="summary-hero">
-        <p className="eyebrow">Page 10 of 10</p>
+        <p className="eyebrow">Page 12 of 12</p>
         <h1>Tell the tenants you are interested.</h1>
         <p className="lede">
           This is the contact step. Send the first message to {match.roommate.name} about {match.roomTitle} to open the house chat.

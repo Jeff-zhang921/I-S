@@ -5,7 +5,10 @@ export type StatusState =
 
 export type ScreenId =
   | "account"
+  | "accountDetails"
+  | "citySelection"
   | "verify"
+  | "commitmentLevel"
   | "quiz"
   | "summary"
   | "pathChoice"
@@ -31,7 +34,6 @@ export type ScreenId =
 
 export type CategoryId = "basics" | "lifestyle" | "interests" | "dealbreakers" | "privacy";
 export type VerificationMethod = "email" | "phone";
-export type IdCheckChoice = "skip" | "include";
 export type ProfileField = "mustHaves" | "dealbreakers";
 export type PrivacyLevel = "open" | "balanced" | "private";
 export type CommitmentLevel = "casual" | "active" | "ready";
@@ -41,9 +43,9 @@ export type AccountState = {
   email: string;
   phone: string;
   password: string;
+  targetCity: string;
   verificationMethod: VerificationMethod;
   verificationCode: string;
-  idCheckChoice: IdCheckChoice;
   privacyLevel: PrivacyLevel;
   commitmentLevel: CommitmentLevel;
 };
@@ -85,7 +87,7 @@ export type ProfileNotesState = Record<ProfileField, string>;
 export type StarterAccount = {
   title: string;
   description: string;
-  values: Pick<AccountState, "fullName" | "email" | "phone" | "password">;
+  values: Pick<AccountState, "fullName" | "email" | "phone" | "password" | "targetCity">;
 };
 
 export type PrivacyLevelOption = {
@@ -140,6 +142,7 @@ export type OwnerListingDraft = {
   title: string;
   neighborhood: string;
   monthlyRent: number;
+  houseRating: number;
   availableFrom: string;
   leaseLength: string;
   roomSize: string;
@@ -243,6 +246,8 @@ export type RoomDetail = {
   summary: string;
   roomDescription: string;
   ownerNote: string;
+  houseRating: number;
+  reviewCount: number;
   bedrooms: number;
   bathrooms: number;
   currentOccupants: string;

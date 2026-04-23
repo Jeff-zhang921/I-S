@@ -4,6 +4,7 @@ export const initialOwnerListing: OwnerListingDraft = {
   title: "Sunny spare room near Clifton Village",
   neighborhood: "Clifton",
   monthlyRent: 980,
+  houseRating: 4.7,
   availableFrom: "2026-09-01",
   leaseLength: "12 months",
   roomSize: "Large double room",

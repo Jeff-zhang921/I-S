@@ -15,7 +15,10 @@ export const DEMO_VERIFICATION_CODE = "246810";
 
 export const screenTitles = {
   account: "Create account",
-  verify: "Verify identity",
+  citySelection: "Target city",
+  verify: "Verification",
+  accountDetails: "Profile visibility",
+  commitmentLevel: "Commitment level",
   quiz: "Questionnaire",
   summary: "Profile summary",
   pathChoice: "Choose path",
@@ -307,7 +310,8 @@ export const starterAccounts: StarterAccount[] = [
       fullName: "Maya Patel",
       email: "maya@bristol.ac.uk",
       phone: "(555) 010-1101",
-      password: "demo1234"
+      password: "demo1234",
+      targetCity: "Bristol"
     }
   }
 ];
@@ -317,9 +321,9 @@ export const initialAccountState: AccountState = {
   email: "",
   phone: "",
   password: "",
+  targetCity: "",
   verificationMethod: "email",
   verificationCode: DEMO_VERIFICATION_CODE,
-  idCheckChoice: "skip",
   privacyLevel: "balanced",
   commitmentLevel: "active"
 };

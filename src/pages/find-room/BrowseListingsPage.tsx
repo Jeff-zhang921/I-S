@@ -1,5 +1,6 @@
 import CommitmentBadge from "../../components/CommitmentBadge";
 import ScreenFlowNav from "../../components/ScreenFlowNav";
+import StarRating from "../../components/StarRating";
 import TopBackButton from "../../components/TopBackButton";
 import { petPolicyOptions } from "../../data/findRoom";
 import { roomDetailById } from "../../data/roomDetails";
@@ -57,7 +58,7 @@ function BrowseListingsPage({
 
   return (
     <section className="screen branch-screen">
-      <TopBackButton label="Back to branch" onClick={onBackToBranch} />
+      <TopBackButton label="Back to options" onClick={onBackToBranch} />
 
       <div className="summary-hero">
         <p className="eyebrow">Browse</p>
@@ -152,7 +153,7 @@ function BrowseListingsPage({
       <ScreenFlowNav
         eyebrow="Renter flow"
         title="Browse listings"
-        description="Go back to the branch selection, adjust filters, or move into the ranked match list after scanning the richer preview cards."
+        description="Go back to your options, adjust filters, or move into the ranked match list after scanning the richer preview cards."
         showBackButton={false}
         actions={[
           { label: "Adjust filters", onClick: onOpenFilters },
@@ -175,9 +176,15 @@ function BrowseListingsPage({
               <img className="listing-image" src={coverPhoto.src} alt={coverPhoto.alt} loading="lazy" />
 
               <div className="listing-top">
-                <div>
+                <div className="listing-head-copy">
                   <h3>{match.roomTitle}</h3>
                   <p className="listing-meta">{match.neighborhood} | {formatPerPersonMonthly(match.monthlyRent)}</p>
+                  <StarRating
+                    rating={detail.houseRating}
+                    reviewCount={detail.reviewCount}
+                    size="sm"
+                    label={`House rating for ${match.roomTitle}`}
+                  />
                 </div>
                 <div className="detail-badge-stack">
                   <CommitmentBadge level={flatmateProfile.commitmentLevel} />

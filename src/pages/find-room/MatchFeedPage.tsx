@@ -62,7 +62,7 @@ function MatchFeedPage({
       <TopBackButton label="Back to suggestions" onClick={onBack} />
 
       <div className="summary-hero feed-hero">
-        <p className="eyebrow">Page 9 of 10</p>
+        <p className="eyebrow">Page 11 of 12</p>
         <h1>Match feed for the renter journey.</h1>
         <p className="lede">
           Pass, save, or like the current room + roommate pair. Open details when you want to tell the tenants you are interested.

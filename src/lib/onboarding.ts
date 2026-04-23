@@ -38,6 +38,18 @@ export function validateAccount(account: {
   return "";
 }
 
+export function validateTargetCity(targetCity: string) {
+  if (!targetCity.trim()) {
+    return "Enter the target city before continuing.";
+  }
+
+  if (targetCity.trim().length < 2) {
+    return "Use a real city name so the onboarding state can carry it forward.";
+  }
+
+  return "";
+}
+
 export function isQuestionVisible(question: Question, privacyLevel: PrivacyLevel) {
   if (question.category !== "privacy") {
     return true;

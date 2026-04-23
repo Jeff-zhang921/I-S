@@ -178,7 +178,7 @@ function QuizPage({
   return (
     <section className="screen quiz-screen quiz-screen-fixed">
       <aside className="quiz-rail">
-        <p className="eyebrow">Page 3 of 10</p>
+        <p className="eyebrow">Page 6 of 12</p>
         <h1>Move through one section at a time.</h1>
         <p className="lede">
           The onboarding is split into manageable sections. Visibility is set to {privacyLevelMeta.summaryLabel.toLowerCase()},
@@ -225,7 +225,7 @@ function QuizPage({
           <TopBackButton label="Back" onClick={onBack} />
           <div className="quiz-stage-topline">
             <span className="tag-chip">Step {sectionIndex + 1} of {totalSections}</span>
-            <span className="inline-note">Finish later any time</span>
+            <span className="inline-note">Save & Quit any time</span>
           </div>
         </div>
 
@@ -244,7 +244,7 @@ function QuizPage({
           </div>
 
           <p className="inline-note quiz-progress-banner-note">
-            Work through one section at a time. Jump between steps if needed, and use Finish later whenever you want to stop.
+            Work through one section at a time. Jump between steps if needed, and use Save & Quit whenever you want to stop.
           </p>
 
           <div className="quiz-progress-meters">
@@ -356,7 +356,7 @@ function QuizPage({
 
           <div className="button-row quiz-actions">
             <button type="button" className="secondary-button quiz-exit-button" onClick={handleSaveAndExitAction}>
-              Finish later
+              Save & Quit
             </button>
             {currentQuestion.type === "scale" ? (
               <p className="inline-note">Tap 1-5 or drag the slider. The next card opens immediately.</p>

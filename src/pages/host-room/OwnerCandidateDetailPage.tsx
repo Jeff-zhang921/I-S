@@ -47,7 +47,7 @@ function OwnerCandidateDetailPage({
       <div className="summary-hero">
         <p className="eyebrow">View profile</p>
         <h1>{candidate.name}</h1>
-        <p className="lede">Profile detail for the owner branch, with fit reasons tied directly back to your room listing.</p>
+        <p className="lede">Profile detail for the owner flow, with fit reasons tied directly back to your room listing.</p>
       </div>
 
       <ScreenFlowNav

@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import ScreenFlowNav from "../components/ScreenFlowNav";
 import TopBackButton from "../components/TopBackButton";
 import { parseProfileList, describeCategoryScore } from "../lib/onboarding";
-import { OwnerListingDraft, PrivacyLevelOption, ProfileNotesState } from "../types";
+import { AccountState, OwnerListingDraft, PrivacyLevelOption, ProfileNotesState } from "../types";
 
 type SummaryCard = {
   id: string;
@@ -15,11 +15,7 @@ type SummaryCard = {
 type OwnerProfileSectionId = "listing" | "signals" | "mustHaves" | "dealbreakers";
 
 type OwnerProfilePageProps = {
-  account: {
-    fullName: string;
-    email: string;
-    phone: string;
-  };
+  account: Pick<AccountState, "fullName" | "email" | "phone" | "targetCity">;
   listing: OwnerListingDraft;
   privacyLevelMeta: PrivacyLevelOption;
   summaryCards: SummaryCard[];
@@ -89,10 +85,11 @@ function OwnerProfilePage({
       <div className="summary-hero">
         <p className="eyebrow">Owner profile</p>
         <h1>Your host profile and room listing.</h1>
-        <p className="lede">Use this as the owner-side profile view from the FigJam branch.</p>
+        <p className="lede">Use this as the owner-side profile view from the FigJam flow.</p>
 
         <div className="summary-tags">
           <span>Have a room</span>
+          <span>{account.targetCity || "City not set"}</span>
           <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{savedCount} shortlisted renters</span>
           <span>{contactedCount} intros sent</span>
@@ -135,6 +132,10 @@ function OwnerProfilePage({
             <article className="detail-card">
               <strong>Phone</strong>
               <span>{account.phone}</span>
+            </article>
+            <article className="detail-card">
+              <strong>Target city</strong>
+              <span>{account.targetCity || "Not set"}</span>
             </article>
             <article className="detail-card">
               <strong>Available from</strong>

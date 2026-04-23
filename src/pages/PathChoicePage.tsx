@@ -2,22 +2,23 @@ import ScreenFlowNav from "../components/ScreenFlowNav";
 import TopBackButton from "../components/TopBackButton";
 
 type PathChoicePageProps = {
+  targetCity: string;
   onBack: () => void;
   onChooseNeedRoom: () => void;
   onChooseHaveRoom: () => void;
 };
 
-function PathChoicePage({ onBack, onChooseNeedRoom, onChooseHaveRoom }: PathChoicePageProps) {
+function PathChoicePage({ targetCity, onBack, onChooseNeedRoom, onChooseHaveRoom }: PathChoicePageProps) {
   return (
     <section className="screen branch-screen branch-screen-epic">
       <TopBackButton label="Back to profile" onClick={onBack} />
 
       <div className="summary-hero summary-hero-epic">
-        <p className="eyebrow">Page 5 of 10</p>
-        <h1>Choose where the live experience branches.</h1>
+        <p className="eyebrow">Page 8 of 12</p>
+        <h1>Choose your goal.</h1>
         <p className="lede">
-          The shared onboarding is complete. From here the prototype splits into two different
-          operating modes with the same compatibility core.
+          The shared onboarding for {targetCity || "your target city"} is complete. From here you can either look for a room
+          or publish a listing with the same compatibility profile.
         </p>
 
         <div className="hero-signal-row">
@@ -28,8 +29,8 @@ function PathChoicePage({ onBack, onChooseNeedRoom, onChooseHaveRoom }: PathChoi
       </div>
 
       <ScreenFlowNav
-        eyebrow="Branch selection"
-        title="Choose the next mode"
+        eyebrow="Goal selection"
+        title="What do you want to do next?"
         description="You can return to the profile summary, or continue into either the renter or owner journey."
         showBackButton={false}
       />

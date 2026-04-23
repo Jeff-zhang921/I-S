@@ -27,10 +27,10 @@ function AccountPage({
     <section className="screen split-screen account-screen">
       <div className="hero-pane hero-pane-coral scene-pane">
         <div className="hero-pane-copy">
-          <p className="eyebrow">Page 1 of 10</p>
+          <p className="eyebrow">Page 1 of 12</p>
           <h1>Map your living vibe before the room search begins.</h1>
           <p className="lede">
-            The first five pages now act like a guided signal map: build identity, trust, privacy,
+            The first eight pages now act like a guided signal map: build identity, trust, privacy,
             and roommate rhythm before the live matching journey opens.
           </p>
         </div>
@@ -38,7 +38,7 @@ function AccountPage({
         <div className="hero-signal-row">
           <span className="signal-pill">Mobile-first PWA</span>
           <span className="signal-pill">Bristol demo data</span>
-          <span className="signal-pill">Renter and host branches</span>
+          <span className="signal-pill">Renter and host flows</span>
         </div>
 
         <div className="hero-grid hero-grid-epic">
@@ -47,7 +47,7 @@ function AccountPage({
             <p>Each step adds enough context that later match cards feel intentional instead of random.</p>
           </article>
           <article className="hero-card">
-            <strong>Branch-ready profile</strong>
+            <strong>Journey-ready profile</strong>
             <p>The same profile payload can now hand off into either the renter or owner journey.</p>
           </article>
         </div>
@@ -152,7 +152,7 @@ function AccountPage({
             <div className="button-row account-actions">
               <p className="inline-note">There is no backend auth in this prototype, so every session starts from profile setup.</p>
               <button className="primary-button" type="submit">
-                Continue to verification
+                Continue to target city
               </button>
             </div>
           </form>

@@ -3,21 +3,17 @@ import TopBackButton from "../components/TopBackButton";
 import StatusBanner from "../components/StatusBanner";
 import { describeCommitmentLevel } from "../lib/findRoom";
 import { describeCategoryScore } from "../lib/onboarding";
-import { CategoryMeta, PrivacyLevelOption, ProfileNotesState, StatusState } from "../types";
+import { AccountState, CategoryMeta, PrivacyLevelOption, ProfileNotesState, StatusState } from "../types";
 
 type SummaryCard = CategoryMeta & {
   score: number;
 };
 
 type SummaryPageProps = {
-  account: {
-    fullName: string;
-    email: string;
-    phone: string;
-    commitmentLevel: "casual" | "active" | "ready";
-    verificationMethod: string;
-    idCheckChoice: string;
-  };
+  account: Pick<
+    AccountState,
+    "fullName" | "email" | "phone" | "targetCity" | "commitmentLevel" | "verificationMethod"
+  >;
   privacyLevelMeta: PrivacyLevelOption;
   answeredCount: number;
   summaryCards: SummaryCard[];
@@ -42,18 +38,18 @@ function SummaryPage({
       <div className="summary-hero">
         <TopBackButton label="Back to questions" onClick={onBack} />
 
-        <p className="eyebrow">Page 4 of 10</p>
+        <p className="eyebrow">Page 7 of 12</p>
         <h1>{account.fullName}'s renter profile is ready.</h1>
         <p className="lede">
-          The onboarding is complete. Next the app branches into the actual renter journey from the FigJam flow.
+          The onboarding is complete. Next, choose whether you want to look for a room or publish a listing.
         </p>
 
         <div className="summary-tags">
           <span>{answeredCount} answers</span>
           <span>{account.verificationMethod} verified</span>
+          <span>{account.targetCity || "City not set"}</span>
           <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
-          <span>{account.idCheckChoice === "include" ? "ID check included" : "ID check skipped"}</span>
         </div>
 
         <StatusBanner status={status} />
@@ -106,6 +102,10 @@ function SummaryPage({
               <span>{account.phone}</span>
             </article>
             <article className="detail-card">
+              <strong>Target city</strong>
+              <span>{account.targetCity || "Not set"}</span>
+            </article>
+            <article className="detail-card">
               <strong>Profile visibility</strong>
               <span>{privacyLevelMeta.title} with {privacyLevelMeta.questionCount} privacy questions</span>
             </article>
@@ -147,7 +147,7 @@ function SummaryPage({
 
       <div className="button-row">
         <button type="button" className="primary-button" onClick={onContinue}>
-          Continue to branch
+         proceed
         </button>
       </div>
     </section>

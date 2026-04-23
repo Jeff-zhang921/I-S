@@ -1,4 +1,5 @@
 import ScreenFlowNav from "../../components/ScreenFlowNav";
+import StarRating from "../../components/StarRating";
 import TopBackButton from "../../components/TopBackButton";
 import { formatOwnerRent } from "../../lib/ownerRoom";
 import { OwnerListingDraft, RoomAmenity } from "../../types";
@@ -22,20 +23,20 @@ function CreateListingPage({
 }: CreateListingPageProps) {
   return (
     <section className="screen branch-screen">
-      <TopBackButton label="Back to branch" onClick={onBack} />
+      <TopBackButton label="Back to options" onClick={onBack} />
 
       <div className="summary-hero">
         <p className="eyebrow">Have a room</p>
         <h1>Create your listing and shortlist housemates.</h1>
         <p className="lede">
-          This follows the FigJam owner branch: create a listing, attach room details, then review suggested renters.
+          This follows the FigJam owner flow: create a listing, attach room details, then review suggested renters.
         </p>
       </div>
 
       <ScreenFlowNav
         eyebrow="Owner flow"
         title="Listing setup"
-        description="Go back to branch selection, or keep moving into the renter suggestions once the room is ready."
+        description="Go back to your options, or keep moving into the renter suggestions once the room is ready."
         showBackButton={false}
         actions={[{ label: "Continue to renter matches", onClick: onContinue, tone: "primary" }]}
       />
@@ -118,6 +119,21 @@ function CreateListingPage({
             />
           </label>
 
+          <div className="owner-rating-panel">
+            <div className="panel-head compact-head">
+              <p className="panel-kicker">House rating</p>
+              <p className="inline-note">Set the star rating you want shown for this home in the prototype listing.</p>
+            </div>
+
+            <StarRating
+              rating={listing.houseRating}
+              label="Rate your house"
+              editable
+              onChange={(value) => onChange("houseRating", value)}
+              caption="Host self-rating"
+            />
+          </div>
+
           <div className="panel-head compact-head">
             <p className="panel-kicker">Amenities</p>
             <p className="inline-note">Frontend-only listing setup. Tap to add or remove features.</p>
@@ -164,6 +180,8 @@ function CreateListingPage({
             </div>
             <span className="tag-chip">{candidateCount} renter matches loaded</span>
           </div>
+
+          <StarRating rating={listing.houseRating} label={`${listing.title} rating`} caption="Host self-rating" />
 
           <div className="owner-photo-grid">
             {listing.photoUrls.map((photoUrl, index) => (

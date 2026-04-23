@@ -4,7 +4,7 @@ import ScreenFlowNav from "../components/ScreenFlowNav";
 import TopBackButton from "../components/TopBackButton";
 import { describeCommitmentLevel } from "../lib/findRoom";
 import { describeCategoryScore, parseProfileList } from "../lib/onboarding";
-import { CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
+import { AccountState, CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
 
 type SummaryCard = CategoryMeta & {
   score: number;
@@ -13,14 +13,10 @@ type SummaryCard = CategoryMeta & {
 type ProfileSectionId = "account" | "signals" | "mustHaves" | "dealbreakers";
 
 type ProfilePageProps = {
-  account: {
-    fullName: string;
-    email: string;
-    phone: string;
-    commitmentLevel: "casual" | "active" | "ready";
-    verificationMethod: string;
-    idCheckChoice: string;
-  };
+  account: Pick<
+    AccountState,
+    "fullName" | "email" | "phone" | "targetCity" | "commitmentLevel" | "verificationMethod"
+  >;
   privacyLevelMeta: PrivacyLevelOption;
   answeredCount: number;
   summaryCards: SummaryCard[];
@@ -111,6 +107,7 @@ function ProfilePage({
         <div className="summary-tags">
           <span>Need a room</span>
           <span>{answeredCount} answers</span>
+          <span>{account.targetCity || "City not set"}</span>
           <span>{privacyLevelMeta.summaryLabel}</span>
           <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
           <span>{savedCount} interested houses</span>
@@ -137,7 +134,7 @@ function ProfilePage({
           id="account"
           kicker="Account"
           title={account.fullName}
-          summary={`${account.email} | ${privacyLevelMeta.summaryLabel} | ${savedCount} saved houses`}
+          summary={`${account.email} | ${account.targetCity || "No city"} | ${savedCount} saved houses`}
           isOpen={expandedSection === "account"}
           onToggle={toggleSection}
         >
@@ -151,12 +148,12 @@ function ProfilePage({
               <span>{account.phone}</span>
             </article>
             <article className="detail-card">
-              <strong>Verification</strong>
-              <span>{account.verificationMethod} verified</span>
+              <strong>Target city</strong>
+              <span>{account.targetCity || "Not set"}</span>
             </article>
             <article className="detail-card">
-              <strong>ID check</strong>
-              <span>{account.idCheckChoice === "include" ? "Included" : "Skipped"}</span>
+              <strong>Verification</strong>
+              <span>{account.verificationMethod} verified</span>
             </article>
             <article className="detail-card detail-card-wide">
               <strong>Profile visibility</strong>

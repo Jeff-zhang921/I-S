@@ -29,7 +29,7 @@ function FiltersPage({
       <TopBackButton label="Back to browse" onClick={onBack} />
 
       <div className="summary-hero">
-        <p className="eyebrow">Page 7 of 10</p>
+        <p className="eyebrow">Page 9 of 12</p>
         <h1>Set filters before matching.</h1>
         <p className="lede">
           Use the richer drawer-style controls to filter by price, location, move-in timing, household setup,
