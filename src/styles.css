@@ -321,9 +321,10 @@ p {
   min-height: 720px;
 }
 
-.split-screen {
-  display: grid;
-  grid-template-columns: minmax(320px, 0.95fr) minmax(400px, 1.05fr);
+.onboarding-screen {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
 }
 
 .account-screen,
@@ -452,14 +453,24 @@ p {
 }
 
 .panel-pane {
+  width: 100%;
+  display: flex;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.62);
-  border-left: 1px solid rgba(23, 34, 54, 0.08);
 }
 
 .panel-shell {
-  max-width: 560px;
+  width: min(100%, 720px);
   display: grid;
   gap: 22px;
+}
+
+.onboarding-panel-pane {
+  padding: clamp(24px, 4vw, 42px);
+}
+
+.onboarding-panel-shell {
+  margin-inline: auto;
 }
 
 .panel-head {
@@ -993,87 +1004,6 @@ p {
   min-height: 470px;
   display: grid;
   align-items: center;
-}
-
-.quiz-progress-banner {
-  display: grid;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow-soft);
-}
-
-.quiz-progress-banner-head,
-.quiz-progress-badge-group,
-.quiz-progress-meters {
-  display: flex;
-  gap: 12px;
-}
-
-.quiz-progress-banner-head,
-.quiz-progress-badge-group {
-  justify-content: space-between;
-  align-items: start;
-}
-
-.quiz-progress-meters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.quiz-progress-banner-note {
-  margin: 0;
-}
-
-.quiz-stepper {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
-}
-
-.quiz-step-button {
-  display: grid;
-  gap: 4px;
-  text-align: left;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.74);
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.quiz-step-button span,
-.quiz-step-button small {
-  color: var(--ink-500);
-  font-size: 0.76rem;
-  font-weight: 600;
-}
-
-.quiz-step-button strong {
-  color: var(--ink-950);
-  font-size: 0.92rem;
-}
-
-.quiz-step-button.active {
-  border-color: rgba(43, 133, 211, 0.3);
-  background: rgba(43, 133, 211, 0.1);
-}
-
-.quiz-step-button.done {
-  border-color: rgba(18, 121, 95, 0.22);
-  background: rgba(18, 121, 95, 0.08);
-}
-
-.quiz-step-button:hover {
-  transform: translateY(-1px);
-}
-
-.quiz-progress-meter {
-  display: grid;
-  gap: 10px;
 }
 
 .quiz-progress-note {
@@ -2403,6 +2333,22 @@ p {
 
 .profile-action-row {
   display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-edit-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.profile-edit-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-edit-actions {
   justify-content: flex-start;
 }
 
@@ -3743,12 +3689,7 @@ p {
   }
 
   .privacy-level-row,
-  .commitment-filter-grid,
-  .quiz-progress-meters {
-    grid-template-columns: 1fr;
-  }
-
-  .quiz-stepper {
+  .commitment-filter-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3780,9 +3721,7 @@ p {
     align-items: stretch;
   }
 
-  .quiz-rail-actions,
-  .quiz-progress-banner-head,
-  .quiz-progress-badge-group {
+  .quiz-rail-actions {
     flex-direction: column;
     align-items: stretch;
   }

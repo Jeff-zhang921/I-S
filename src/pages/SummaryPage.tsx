@@ -33,34 +33,28 @@ function SummaryPage({
   onBack,
   onContinue
 }: SummaryPageProps) {
+  const summaryMeta = [
+    account.targetCity || "City not set",
+    `${account.verificationMethod} verified`,
+    privacyLevelMeta.summaryLabel,
+    describeCommitmentLevel(account.commitmentLevel)
+  ].join(" • ");
+
   return (
     <section className="screen summary-screen">
-      <div className="summary-hero">
+      <div className="minimal-summary-block">
         <TopBackButton label="Back to questions" onClick={onBack} />
-
-        <p className="eyebrow">Page 7 of 12</p>
-        <h1>{account.fullName}'s renter profile is ready.</h1>
-        <p className="lede">
-          The onboarding is complete. Next, choose whether you want to look for a room or publish a listing.
-        </p>
-
-        <div className="summary-tags">
-          <span>{answeredCount} answers</span>
-          <span>{account.verificationMethod} verified</span>
-          <span>{account.targetCity || "City not set"}</span>
-          <span>{privacyLevelMeta.summaryLabel}</span>
-          <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
-        </div>
-
-        <StatusBanner status={status} />
+        <h1 className="minimal-summary-title">Profile Ready</h1>
+        <p className="summary-meta-line">{summaryMeta}</p>
+        {status.kind === "error" ? <StatusBanner status={status} /> : null}
       </div>
 
       <div className="summary-grid">
         <section className="summary-panel">
           <div className="panel-headline">
             <div>
-              <p className="panel-kicker">Profile signals</p>
-              <h2>Compatibility profile</h2>
+              <p className="panel-kicker">Lifestyle survey</p>
+              <h2>Lifestyle survey results</h2>
             </div>
           </div>
 
@@ -147,7 +141,7 @@ function SummaryPage({
 
       <div className="button-row">
         <button type="button" className="primary-button" onClick={onContinue}>
-         proceed
+         Proceed
         </button>
       </div>
     </section>

@@ -41,7 +41,7 @@ async function reachPathChoice(page: Page) {
   await expect(page.getByRole("heading", { name: /Choose who can see this profile before matching starts/i })).toBeVisible();
   await page.getByRole("button", { name: /Continue to commitment level/i }).click();
   await expect(page.getByRole("heading", { name: /Set how ready this account is to move/i })).toBeVisible();
-  await page.getByRole("button", { name: /Start questionnaire/i }).click();
+  await page.getByRole("button", { name: /Start lifestyle survey/i }).click();
   await advanceQuiz(page);
   await page.getByRole("button", { name: /Choose your goal/i }).click();
   await expect(page.getByRole("heading", { name: /Choose your goal/i })).toBeVisible();

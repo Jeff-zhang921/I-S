@@ -1,4 +1,5 @@
 import { FormEvent } from "react";
+import OnboardingLayout from "../components/OnboardingLayout";
 import StatusBanner from "../components/StatusBanner";
 import { AccountState, StarterAccount, StatusState } from "../types";
 
@@ -24,51 +25,7 @@ function AccountPage({
   onSubmit
 }: AccountPageProps) {
   return (
-    <section className="screen split-screen account-screen">
-      <div className="hero-pane hero-pane-coral scene-pane">
-        <div className="hero-pane-copy">
-          <p className="eyebrow">Page 1 of 12</p>
-          <h1>Map your living vibe before the room search begins.</h1>
-          <p className="lede">
-            The first eight pages now act like a guided signal map: build identity, trust, privacy,
-            and roommate rhythm before the live matching journey opens.
-          </p>
-        </div>
-
-        <div className="hero-signal-row">
-          <span className="signal-pill">Mobile-first PWA</span>
-          <span className="signal-pill">Bristol demo data</span>
-          <span className="signal-pill">Renter and host flows</span>
-        </div>
-
-        <div className="hero-grid hero-grid-epic">
-          <article className="hero-card">
-            <strong>Signal-first onboarding</strong>
-            <p>Each step adds enough context that later match cards feel intentional instead of random.</p>
-          </article>
-          <article className="hero-card">
-            <strong>Journey-ready profile</strong>
-            <p>The same profile payload can now hand off into either the renter or owner journey.</p>
-          </article>
-        </div>
-
-        <div className="hero-route-map" aria-hidden="true">
-          <div className="hero-route-panel">
-            <span>Match confidence</span>
-            <strong>82%</strong>
-            <small>Profile clarity compounds as the onboarding stack fills in.</small>
-          </div>
-          <div className="hero-route-rail">
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
-      </div>
-
-      <div className="panel-pane">
-        <div className="panel-shell">
+    <OnboardingLayout sectionClassName="account-screen" shellClassName="account-panel-shell">
           <div className="panel-head">
             <p className="panel-kicker">Create account</p>
             <h2>Launch the profile</h2>
@@ -95,7 +52,7 @@ function AccountPage({
                 <p className="panel-kicker">Saved onboarding draft</p>
                 <h3>Pick up where you left off</h3>
                 <p className="inline-note">
-                  Your onboarding progress was saved locally, including privacy choices and questionnaire answers.
+                  Your onboarding progress was saved locally, including privacy choices and lifestyle survey answers.
                 </p>
               </div>
               <button type="button" className="secondary-button" onClick={onResumeSavedDraft}>
@@ -156,9 +113,7 @@ function AccountPage({
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </section>
+    </OnboardingLayout>
   );
 }
 

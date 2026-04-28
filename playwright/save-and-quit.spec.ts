@@ -5,7 +5,7 @@ test.use({
   colorScheme: "light"
 });
 
-test("Save & Quit persists questionnaire progress and ends the current session", async ({ page }) => {
+test("Save & Quit persists lifestyle survey progress and ends the current session", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
   await page.getByRole("button", { name: /Demo account/i }).click();
@@ -13,7 +13,9 @@ test("Save & Quit persists questionnaire progress and ends the current session",
   await page.getByRole("button", { name: /Continue to verification/i }).click();
   await page.getByRole("button", { name: /Continue to profile visibility/i }).click();
   await page.getByRole("button", { name: /Continue to commitment level/i }).click();
-  await page.getByRole("button", { name: /Start questionnaire/i }).click();
+  await page.getByRole("button", { name: /Start lifestyle survey/i }).click();
+
+  await expect(page.getByRole("list", { name: /Progress/i }).getByText(/^Lifestyle Survey$/i)).toBeVisible();
 
   await expect(page.locator(".question-card-active")).toBeVisible();
   await page.getByRole("button", { name: /Save & Quit/i }).click();

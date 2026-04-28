@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import AppHeader from "./components/AppHeader";
 import BottomNav from "./components/BottomNav";
 import AccountPage from "./pages/AccountPage";
@@ -6,7 +6,7 @@ import CommitmentLevelPage from "./pages/CommitmentLevelPage";
 import CitySelectionPage from "./pages/CitySelectionPage";
 import ProfileVisibilityPage from "./pages/ProfileVisibilityPage";
 import VerificationPage from "./pages/VerificationPage";
-import QuizPage from "./pages/QuizPage";
+import LifestyleSurveyPage from "./pages/LifestyleSurveyPage";
 import SummaryPage from "./pages/SummaryPage";
 import PathChoicePage from "./pages/PathChoicePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -52,12 +52,14 @@ import {
   isQuestionVisible,
   matchReasons,
   validateAccount,
+  validateEditableProfile,
   validateTargetCity
 } from "./lib/onboarding";
 import {
   AccountState,
   CategoryId,
   ChatMessage,
+  EditableProfileState,
   MatchTarget,
   OwnerListingDraft,
   ProfileNotesState,
@@ -100,7 +102,7 @@ const onboardingHeaderItems = [
   { id: "verify", label: "Verify" },
   { id: "accountDetails", label: "Visibility" },
   { id: "commitmentLevel", label: "Commitment" },
-  { id: "quiz", label: "Signals" },
+  { id: "lifestyleSurvey", label: "Lifestyle Survey" },
   { id: "summary", label: "Profile" },
   { id: "pathChoice", label: "Goal" }
 ] as const;
@@ -126,6 +128,10 @@ function normalizeAccountState(account?: Partial<AccountState> | null): AccountS
     privacyLevel: account?.privacyLevel ?? initialAccountState.privacyLevel,
     commitmentLevel: account?.commitmentLevel ?? initialAccountState.commitmentLevel
   };
+}
+
+function normalizeLifestyleSurveyScreen(screen: ScreenId) {
+  return screen === "quiz" ? "lifestyleSurvey" : screen;
 }
 
 function getRenterScreenLabel(screen: DetailReturnScreen | IntroBackScreen | RenterNavScreen | "filters") {
@@ -229,6 +235,13 @@ function App() {
   const [ownerIntroDrafts, setOwnerIntroDrafts] = useState<Record<string, string>>({});
   const [ownerChatDrafts, setOwnerChatDrafts] = useState<Record<string, string>>({});
   const [ownerChatMessagesByCandidate, setOwnerChatMessagesByCandidate] = useState<Record<string, ChatMessage[]>>({});
+  const previousScreenRef = useRef<ScreenId>("account");
+  const currentScreenRef = useRef<ScreenId>("account");
+
+  useEffect(() => {
+    previousScreenRef.current = currentScreenRef.current;
+    currentScreenRef.current = screen;
+  }, [screen]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -473,6 +486,7 @@ function App() {
     "ownerProfile"
   ].includes(screen);
   const showPrimaryNav = showRenterNav || showOwnerNav;
+  const activeOnboardingScreen = normalizeLifestyleSurveyScreen(screen);
   const activeRenterNav = (() => {
     switch (screen) {
       case "browseListings":
@@ -534,9 +548,9 @@ function App() {
         return "ownerSuggestions";
     }
   })() as OwnerNavScreen;
-  const showOnboardingHeader = onboardingHeaderItems.some((item) => item.id === screen);
+  const showOnboardingHeader = onboardingHeaderItems.some((item) => item.id === activeOnboardingScreen);
   const onboardingHeaderCopy = (() => {
-    switch (screen) {
+    switch (activeOnboardingScreen) {
       case "account":
         return {
           title: "Profile ignition",
@@ -560,9 +574,9 @@ function App() {
       case "commitmentLevel":
         return {
           title: "Move intent",
-          subtitle: "Set how ready this account is to move before the questionnaire opens."
+          subtitle: "Set how ready this account is to move before the lifestyle survey opens."
         };
-      case "quiz":
+      case "lifestyleSurvey":
         return {
           title: `Step ${currentCategoryIndex + 1}: ${currentCategory.title}`,
           subtitle: `${Math.round(quizProgress)}% complete. Question ${currentCategoryQuestionNumber} of ${currentCategoryQuestions.length} in this section.`
@@ -570,7 +584,7 @@ function App() {
       case "summary":
         return {
           title: "Compatibility profile",
-          subtitle: "Review the signal mix before choosing what you want to do next."
+          subtitle: "Review your lifestyle survey results before choosing what you want to do next."
         };
       case "pathChoice":
         return {
@@ -793,24 +807,6 @@ function App() {
     setQuestionIndex(firstUnansweredIndex === -1 ? Math.max(visibleQuestions.length - 1, 0) : firstUnansweredIndex);
   }
 
-  function jumpToQuestionSection(categoryId: CategoryId) {
-    const visibleQuestions = getVisibleQuestionBank();
-    const sectionQuestions = visibleQuestions.filter((question) => question.category === categoryId);
-    if (!sectionQuestions.length) {
-      return;
-    }
-
-    const targetQuestion =
-      sectionQuestions.find((question) => !isQuestionAnswered(question, quizAnswers, profileNotes)) ??
-      sectionQuestions[0];
-    const nextIndex = visibleQuestions.findIndex((question) => question.id === targetQuestion.id);
-
-    if (nextIndex >= 0) {
-      setQuestionIndex(nextIndex);
-      clearStatus();
-    }
-  }
-
   function addSavedMatch(matchId: string) {
     setSavedIds((current) => (current.includes(matchId) ? current : [...current, matchId]));
   }
@@ -963,7 +959,7 @@ function App() {
       return;
     }
 
-    setScreen("quiz");
+    setScreen("lifestyleSurvey");
   }
 
   function handleSaveAndQuit(nextProfileNotes?: Partial<ProfileNotesState>) {
@@ -1032,10 +1028,10 @@ function App() {
     event.preventDefault();
 
     moveToNextUnansweredQuestion(account.privacyLevel);
-    setScreen("quiz");
+    setScreen("lifestyleSurvey");
     setStatus({
       kind: "success",
-      message: `${privacyLevelMeta.summaryLabel} selected. ${privacyLevelMeta.questionCount} privacy questions are queued for this profile.`
+      message: `${privacyLevelMeta.summaryLabel} selected. ${privacyLevelMeta.questionCount} privacy questions are queued for the lifestyle survey.`
     });
   }
 
@@ -1050,7 +1046,7 @@ function App() {
     if (safeQuestionIndex >= totalQuestions - 1) {
       clearSavedOnboardingDraft();
       setScreen("summary");
-      setStatus({ kind: "success", message: "Questionnaire complete. Review the renter profile." });
+      setStatus({ kind: "success", message: "Lifestyle survey complete. Review the renter profile." });
       return;
     }
 
@@ -1095,7 +1091,7 @@ function App() {
     if (safeQuestionIndex >= totalQuestions - 1) {
       clearSavedOnboardingDraft();
       setScreen("summary");
-      setStatus({ kind: "success", message: "Questionnaire complete. Review the renter profile." });
+      setStatus({ kind: "success", message: "Lifestyle survey complete. Review the renter profile." });
       return;
     }
 
@@ -1106,7 +1102,7 @@ function App() {
   function handleContinueToGoal() {
     if (answeredCount < totalQuestions) {
       moveToNextUnansweredQuestion();
-      setScreen("quiz");
+      setScreen("lifestyleSurvey");
       setStatus({ kind: "error", message: "Finish the remaining questions before choosing what to do next." });
       return;
     }
@@ -1114,6 +1110,32 @@ function App() {
     setScreen("pathChoice");
     clearSavedOnboardingDraft();
     clearStatus();
+  }
+
+  async function submitProfileUpdate(edits: EditableProfileState) {
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+    return normalizeAccountState({ ...account, ...edits });
+  }
+
+  async function handleSaveProfile(edits: EditableProfileState) {
+    const validationMessage = validateEditableProfile(edits);
+    if (validationMessage) {
+      setStatus({ kind: "error", message: validationMessage });
+      return false;
+    }
+
+    try {
+      const updatedAccount = await submitProfileUpdate(edits);
+      setAccount(updatedAccount);
+      setStatus({
+        kind: "success",
+        message: "Profile changes saved. This prototype updates local state and stands in for a profile API call."
+      });
+      return true;
+    } catch {
+      setStatus({ kind: "error", message: "Profile changes could not be saved right now." });
+      return false;
+    }
   }
 
   function handleOwnerNavSelect(target: string) {
@@ -1172,6 +1194,14 @@ function App() {
     setOwnerFeedIndex(0);
     setSelectedOwnerCandidateId(null);
     setScreen("ownerListing");
+  }
+
+  function goBackToPreviousScreen(fallbackScreen: ScreenId) {
+    const previousScreen = previousScreenRef.current;
+    const targetScreen = previousScreen && previousScreen !== screen ? previousScreen : fallbackScreen;
+
+    setScreen(targetScreen);
+    clearStatus();
   }
 
   function handleOpenFeed() {
@@ -1536,10 +1566,10 @@ function App() {
         );
 
       case "quiz":
+      case "lifestyleSurvey":
         return (
-          <QuizPage
+          <LifestyleSurveyPage
             totalQuestions={totalQuestions}
-            answeredCount={answeredCount}
             quizProgress={quizProgress}
             questionIndex={safeQuestionIndex}
             currentQuestion={currentQuestion}
@@ -1557,7 +1587,6 @@ function App() {
             status={status}
             onScaleCommit={handleScaleCommit}
             onBack={handleQuizBack}
-            onJumpToSection={jumpToQuestionSection}
             onSaveAndExit={handleSaveAndQuit}
             onTextChange={handleTextChange}
             onTextSubmit={handleTextSubmit}
@@ -1576,7 +1605,7 @@ function App() {
             status={status}
             onBack={() => {
               setQuestionIndex(Math.max(totalQuestions - 1, 0));
-              setScreen("quiz");
+              setScreen("lifestyleSurvey");
               clearStatus();
             }}
             onContinue={handleContinueToGoal}
@@ -1626,7 +1655,7 @@ function App() {
             currentCandidate={currentOwnerCandidate}
             currentIndex={ownerFeedIndex}
             total={scoredOwnerCandidates.length}
-            onBack={() => setScreen("ownerSuggestions")}
+            onBack={() => goBackToPreviousScreen("ownerSuggestions")}
             onInspect={handleOpenCurrentOwnerDetail}
             onOpenSaved={() => setScreen("ownerSavedList")}
             onPass={handlePassOwnerCandidate}
@@ -1823,7 +1852,7 @@ function App() {
             profileNotes={profileNotes}
             currentIndex={feedIndex}
             total={filteredMatches.length}
-            onBack={() => setScreen("suggestions")}
+            onBack={() => goBackToPreviousScreen("suggestions")}
             onInspect={handleOpenCurrentDetail}
             onOpenSaved={() => setScreen("savedList")}
             onPass={handlePassMatch}
@@ -1940,10 +1969,13 @@ function App() {
             answeredCount={answeredCount}
             summaryCards={summaryCards}
             profileNotes={profileNotes}
+            status={status}
             savedCount={savedMatches.length}
             contactedCount={contactedIds.length}
             onBack={() => setScreen("savedList")}
             onOpenChats={() => setScreen("groupChat")}
+            onClearStatus={clearStatus}
+            onSaveProfile={handleSaveProfile}
             onBackToSignIn={() => logoutCurrentSession()}
           />
         );
@@ -1972,7 +2004,7 @@ function App() {
           {showOnboardingHeader && onboardingHeaderCopy ? (
             <AppHeader
               items={onboardingHeaderItems as unknown as Array<{ id: string; label: string }>}
-              activeId={screen}
+              activeId={activeOnboardingScreen}
               title={onboardingHeaderCopy.title}
               subtitle={onboardingHeaderCopy.subtitle}
             />

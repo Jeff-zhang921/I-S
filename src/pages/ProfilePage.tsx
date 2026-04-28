@@ -1,16 +1,24 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import CommitmentBadge from "../components/CommitmentBadge";
 import ScreenFlowNav from "../components/ScreenFlowNav";
+import StatusBanner from "../components/StatusBanner";
 import TopBackButton from "../components/TopBackButton";
 import { describeCommitmentLevel } from "../lib/findRoom";
 import { describeCategoryScore, parseProfileList } from "../lib/onboarding";
-import { AccountState, CategoryMeta, PrivacyLevelOption, ProfileNotesState } from "../types";
+import {
+  AccountState,
+  CategoryMeta,
+  EditableProfileState,
+  PrivacyLevelOption,
+  ProfileNotesState,
+  StatusState
+} from "../types";
 
 type SummaryCard = CategoryMeta & {
   score: number;
 };
 
-type ProfileSectionId = "account" | "signals" | "mustHaves" | "dealbreakers";
+type ProfileSectionId = "account" | "lifestyleSurvey" | "mustHaves" | "dealbreakers";
 
 type ProfilePageProps = {
   account: Pick<
@@ -21,10 +29,13 @@ type ProfilePageProps = {
   answeredCount: number;
   summaryCards: SummaryCard[];
   profileNotes: ProfileNotesState;
+  status: StatusState;
   savedCount: number;
   contactedCount: number;
   onBack: () => void;
   onOpenChats: () => void;
+  onClearStatus: () => void;
+  onSaveProfile: (profile: EditableProfileState) => Promise<boolean>;
   onBackToSignIn: () => void;
 };
 
@@ -67,20 +78,31 @@ function ProfilePage({
   answeredCount,
   summaryCards,
   profileNotes,
+  status,
   savedCount,
   contactedCount,
   onBack,
   onOpenChats,
+  onClearStatus,
+  onSaveProfile,
   onBackToSignIn
 }: ProfilePageProps) {
   const [expandedSection, setExpandedSection] = useState<ProfileSectionId | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [draftAccount, setDraftAccount] = useState<EditableProfileState>({
+    fullName: account.fullName,
+    email: account.email,
+    phone: account.phone,
+    targetCity: account.targetCity
+  });
 
   const mustHaveItems = useMemo(() => parseProfileList(profileNotes.mustHaves), [profileNotes.mustHaves]);
   const dealbreakerItems = useMemo(
     () => parseProfileList(profileNotes.dealbreakers),
     [profileNotes.dealbreakers]
   );
-  const topSignals = useMemo(
+  const topLifestyleThemes = useMemo(
     () =>
       [...summaryCards]
         .sort((left, right) => right.score - left.score)
@@ -88,46 +110,156 @@ function ProfilePage({
         .map((category) => category.title),
     [summaryCards]
   );
+  const profileMeta = [
+    account.targetCity || "City not set",
+    `${account.verificationMethod} verified`,
+    privacyLevelMeta.summaryLabel,
+    describeCommitmentLevel(account.commitmentLevel),
+    `${savedCount} saved`,
+    `${contactedCount} chats`
+  ].join(" • ");
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftAccount({
+        fullName: account.fullName,
+        email: account.email,
+        phone: account.phone,
+        targetCity: account.targetCity
+      });
+    }
+  }, [account, isEditing]);
 
   function toggleSection(id: ProfileSectionId) {
     setExpandedSection((current) => (current === id ? null : id));
+  }
+
+  function handleStartEdit() {
+    setDraftAccount({
+      fullName: account.fullName,
+      email: account.email,
+      phone: account.phone,
+      targetCity: account.targetCity
+    });
+    setExpandedSection("account");
+    setIsEditing(true);
+    onClearStatus();
+  }
+
+  function handleCancelEdit() {
+    setDraftAccount({
+      fullName: account.fullName,
+      email: account.email,
+      phone: account.phone,
+      targetCity: account.targetCity
+    });
+    setIsEditing(false);
+    onClearStatus();
+  }
+
+  async function handleSaveChanges(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+    const didSave = await onSaveProfile(draftAccount);
+    setIsSaving(false);
+
+    if (didSave) {
+      setIsEditing(false);
+    }
   }
 
   return (
     <section className="screen branch-screen">
       <TopBackButton label="Back to interested houses" onClick={onBack} />
 
-      <div className="summary-hero">
+      <div className="minimal-summary-block profile-summary-minimal">
         <p className="eyebrow">Profile</p>
-        <h1>Your renter profile.</h1>
-        <p className="lede">
-          Keep the overview short on mobile, then open details only when needed.
-        </p>
-
-        <div className="summary-tags">
-          <span>Need a room</span>
-          <span>{answeredCount} answers</span>
-          <span>{account.targetCity || "City not set"}</span>
-          <span>{privacyLevelMeta.summaryLabel}</span>
-          <span>{describeCommitmentLevel(account.commitmentLevel)}</span>
-          <span>{savedCount} interested houses</span>
-          <span>{contactedCount} intros sent</span>
-        </div>
+        <h1 className="minimal-summary-title">Your renter profile.</h1>
+        <p className="summary-meta-line">{profileMeta}</p>
 
         <div className="profile-action-row">
+          <button type="button" className="primary-button" onClick={handleStartEdit} disabled={isEditing}>
+            Edit Profile
+          </button>
           <button type="button" className="secondary-button" onClick={onBackToSignIn}>
             Sign out
           </button>
         </div>
+
+        <StatusBanner status={status} />
       </div>
 
       <ScreenFlowNav
         eyebrow="Renter flow"
         title="Profile overview"
-        description="Go back to your interested houses, jump into chats, or sign out from the prototype."
+        description="Go back to your interested houses, jump into chats, edit your details, or sign out from the prototype."
         showBackButton={false}
         actions={[{ label: "Open chats", onClick: onOpenChats, tone: "primary", disabled: contactedCount === 0 }]}
       />
+
+      {isEditing ? (
+        <section className="summary-panel profile-edit-panel">
+          <div className="panel-headline">
+            <div>
+              <p className="panel-kicker">Edit profile</p>
+              <h2>Update renter details</h2>
+            </div>
+          </div>
+
+          <form className="stack-form" onSubmit={handleSaveChanges} noValidate>
+            <div className="field-grid profile-edit-field-grid">
+              <label>
+                Full name
+                <input
+                  type="text"
+                  value={draftAccount.fullName}
+                  onChange={(event) => setDraftAccount((current) => ({ ...current, fullName: event.target.value }))}
+                />
+              </label>
+
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={draftAccount.email}
+                  onChange={(event) => setDraftAccount((current) => ({ ...current, email: event.target.value }))}
+                />
+              </label>
+
+              <label>
+                Phone
+                <input
+                  type="tel"
+                  value={draftAccount.phone}
+                  onChange={(event) => setDraftAccount((current) => ({ ...current, phone: event.target.value }))}
+                />
+              </label>
+
+              <label>
+                Target city
+                <input
+                  type="text"
+                  value={draftAccount.targetCity}
+                  onChange={(event) => setDraftAccount((current) => ({ ...current, targetCity: event.target.value }))}
+                />
+              </label>
+            </div>
+
+            <p className="inline-note">
+              Save Changes uses a placeholder submit handler in this prototype and updates the shared profile state locally.
+            </p>
+
+            <div className="button-row profile-edit-actions">
+              <button type="submit" className="primary-button" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+              <button type="button" className="secondary-button" onClick={handleCancelEdit} disabled={isSaving}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+      ) : null}
 
       <div className="profile-accordion">
         <ProfilePanel
@@ -167,11 +299,11 @@ function ProfilePage({
         </ProfilePanel>
 
         <ProfilePanel
-          id="signals"
-          kicker="Signals"
-          title="Compatibility profile"
-          summary={`Strongest on ${topSignals.join(" and ").toLowerCase() || "matching signals"}.`}
-          isOpen={expandedSection === "signals"}
+          id="lifestyleSurvey"
+          kicker="Lifestyle Survey"
+          title="Lifestyle survey results"
+          summary={`Strongest on ${topLifestyleThemes.join(" and ").toLowerCase() || "your survey themes"}.`}
+          isOpen={expandedSection === "lifestyleSurvey"}
           onToggle={toggleSection}
         >
           <div className="signal-grid">

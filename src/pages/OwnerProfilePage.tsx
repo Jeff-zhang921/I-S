@@ -12,7 +12,7 @@ type SummaryCard = {
   score: number;
 };
 
-type OwnerProfileSectionId = "listing" | "signals" | "mustHaves" | "dealbreakers";
+type OwnerProfileSectionId = "listing" | "lifestyleSurvey" | "mustHaves" | "dealbreakers";
 
 type OwnerProfilePageProps = {
   account: Pick<AccountState, "fullName" | "email" | "phone" | "targetCity">;
@@ -153,11 +153,11 @@ function OwnerProfilePage({
         </OwnerProfilePanel>
 
         <OwnerProfilePanel
-          id="signals"
-          kicker="Signals"
-          title="Matching preference profile"
+          id="lifestyleSurvey"
+          kicker="Lifestyle Survey"
+          title="Lifestyle survey results"
           summary="This uses the onboarding answers from your owner profile."
-          isOpen={expandedSection === "signals"}
+          isOpen={expandedSection === "lifestyleSurvey"}
           onToggle={toggleSection}
         >
           <div className="signal-grid">

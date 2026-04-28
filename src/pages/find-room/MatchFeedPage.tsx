@@ -43,7 +43,7 @@ function MatchFeedPage({
   if (!currentMatch) {
     return (
       <section className="screen branch-screen feed-screen">
-        <TopBackButton label="Back to suggestions" onClick={onBack} />
+        <TopBackButton label="Go Back" onClick={onBack} />
 
         <div className="empty-panel">
           <h3>No results in the feed.</h3>
@@ -59,7 +59,7 @@ function MatchFeedPage({
 
   return (
     <section className="screen branch-screen feed-screen">
-      <TopBackButton label="Back to suggestions" onClick={onBack} />
+      <TopBackButton label="Go Back" onClick={onBack} />
 
       <div className="summary-hero feed-hero">
         <p className="eyebrow">Page 11 of 12</p>

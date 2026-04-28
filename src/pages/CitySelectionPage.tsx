@@ -1,4 +1,5 @@
 import { FormEvent } from "react";
+import OnboardingLayout from "../components/OnboardingLayout";
 import StatusBanner from "../components/StatusBanner";
 import TopBackButton from "../components/TopBackButton";
 import { AccountState, StatusState } from "../types";
@@ -15,44 +16,8 @@ type CitySelectionPageProps = {
 
 function CitySelectionPage({ account, status, onChange, onBack, onSubmit }: CitySelectionPageProps) {
   return (
-    <section className="screen split-screen verify-screen city-selection-screen">
-      <div className="hero-pane hero-pane-blue scene-pane">
+    <OnboardingLayout sectionClassName="verify-screen city-selection-screen" shellClassName="verify-panel-shell">
         <TopBackButton label="Back" onClick={onBack} />
-
-        <div className="hero-pane-copy">
-          <p className="eyebrow">Page 2 of 12</p>
-          <h1>Set the target city for this search or listing flow.</h1>
-          <p className="lede">
-            Capture the city before verification and profile setup so later renter and owner journeys know where this
-            account intends to operate.
-          </p>
-        </div>
-
-        <div className="hero-signal-row">
-          <span className="signal-pill">Search targeting</span>
-          <span className="signal-pill">Listing city</span>
-          <span className="signal-pill">Journey context</span>
-        </div>
-
-        <div className="hero-grid hero-grid-epic hero-grid-verify">
-          <article className="hero-card">
-            <strong>Shared city state</strong>
-            <p>The same target city is carried into both the renter and owner journeys after onboarding.</p>
-          </article>
-          <article className="hero-card">
-            <strong>Boilerplate step</strong>
-            <p>This page is intentionally lightweight so the city input can evolve into search routing later.</p>
-          </article>
-        </div>
-
-        <div className="verify-note">
-          <p className="note-title">Current city</p>
-          <p>{account.targetCity.trim() || "No city selected yet"}</p>
-        </div>
-      </div>
-
-      <div className="panel-pane">
-        <div className="panel-shell verify-panel-shell">
           <div className="panel-head">
             <p className="panel-kicker">Target city</p>
             <h2>Choose where this account is active</h2>
@@ -110,9 +75,7 @@ function CitySelectionPage({ account, status, onChange, onBack, onSubmit }: City
               </div>
             </div>
           </form>
-        </div>
-      </div>
-    </section>
+    </OnboardingLayout>
   );
 }
 

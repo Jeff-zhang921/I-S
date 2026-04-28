@@ -9,6 +9,7 @@ export type ScreenId =
   | "citySelection"
   | "verify"
   | "commitmentLevel"
+  | "lifestyleSurvey"
   | "quiz"
   | "summary"
   | "pathChoice"
@@ -49,6 +50,8 @@ export type AccountState = {
   privacyLevel: PrivacyLevel;
   commitmentLevel: CommitmentLevel;
 };
+
+export type EditableProfileState = Pick<AccountState, "fullName" | "email" | "phone" | "targetCity">;
 
 export type BaseQuestion = {
   id: string;

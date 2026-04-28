@@ -1,5 +1,6 @@
 import { FormEvent } from "react";
 import CommitmentSelector from "../components/CommitmentSelector";
+import OnboardingLayout from "../components/OnboardingLayout";
 import StatusBanner from "../components/StatusBanner";
 import TopBackButton from "../components/TopBackButton";
 import { describeCommitmentLevel } from "../lib/findRoom";
@@ -21,48 +22,14 @@ function CommitmentLevelPage({
   onSubmit
 }: CommitmentLevelPageProps) {
   return (
-    <section className="screen split-screen verify-screen commitment-level-screen">
-      <div className="hero-pane hero-pane-blue scene-pane">
+    <OnboardingLayout sectionClassName="verify-screen commitment-level-screen" shellClassName="verify-panel-shell">
         <TopBackButton label="Back" onClick={onBack} />
-
-        <div className="hero-pane-copy">
-          <p className="eyebrow">Page 5 of 12</p>
-          <h1>Set how ready this account is to move.</h1>
-          <p className="lede">
-            Keep commitment separate from visibility so the intent signal is clearer before the questionnaire begins.
-          </p>
-        </div>
-
-        <div className="hero-signal-row">
-          <span className="signal-pill">Move urgency</span>
-          <span className="signal-pill">Owner context</span>
-          <span className="signal-pill">Renter context</span>
-        </div>
-
-        <div className="hero-grid hero-grid-epic hero-grid-verify">
-          <article className="hero-card">
-            <strong>Expectation setting</strong>
-            <p>Later listing and match screens use this signal to show whether the account is browsing or ready to act.</p>
-          </article>
-          <article className="hero-card">
-            <strong>Separate from privacy</strong>
-            <p>Visibility controls who can see the profile. Commitment level shows how soon this account wants to move.</p>
-          </article>
-        </div>
-
-        <div className="verify-note">
-          <p className="note-title">Current level</p>
-          <p>{describeCommitmentLevel(account.commitmentLevel)}</p>
-        </div>
-      </div>
-
-      <div className="panel-pane">
-        <div className="panel-shell verify-panel-shell">
           <div className="panel-head">
             <p className="panel-kicker">Commitment level</p>
             <h2>Choose the move timeline signal</h2>
             <p className="verify-support-copy">
-              This is the final account setup step before the questionnaire opens.
+              Current level: <strong>{describeCommitmentLevel(account.commitmentLevel)}</strong>. This is the final
+              account setup step before the lifestyle survey opens.
             </p>
           </div>
 
@@ -79,14 +46,12 @@ function CommitmentLevelPage({
 
               <div className="button-row verify-actions">
                 <button className="primary-button" type="submit">
-                  Start questionnaire
+                  Start lifestyle survey
                 </button>
               </div>
             </div>
           </form>
-        </div>
-      </div>
-    </section>
+    </OnboardingLayout>
   );
 }
 

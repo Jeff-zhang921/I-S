@@ -50,6 +50,27 @@ export function validateTargetCity(targetCity: string) {
   return "";
 }
 
+export function validateEditableProfile(profile: {
+  fullName: string;
+  email: string;
+  phone: string;
+  targetCity: string;
+}) {
+  if (!profile.fullName.trim() || !profile.email.trim() || !profile.phone.trim() || !profile.targetCity.trim()) {
+    return "Complete name, email, phone, and target city before saving the profile.";
+  }
+
+  if (!/\S+@\S+\.\S+/.test(profile.email)) {
+    return "Use a valid email address before saving profile changes.";
+  }
+
+  if (profile.phone.replace(/\D/g, "").length < 10) {
+    return "Enter a phone number with at least 10 digits before saving profile changes.";
+  }
+
+  return validateTargetCity(profile.targetCity);
+}
+
 export function isQuestionVisible(question: Question, privacyLevel: PrivacyLevel) {
   if (question.category !== "privacy") {
     return true;
